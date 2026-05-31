@@ -91,6 +91,64 @@ def test_build_inference_features_reset_index(features_df):
     assert list(result.index) == list(range(len(result)))
 
 
+def test_build_inference_features_excludes_incomplete_window():
+    """A window that started less than WINDOW_DAYS ago must be excluded; the previous complete window is used instead."""
+    from pipelines.feature.aggregate import WINDOW_DAYS
+
+    today = pd.Timestamp.now().normalize()
+    complete_window = today - pd.Timedelta(days=WINDOW_DAYS + 1)
+    incomplete_window = today - pd.Timedelta(days=1)
+
+    df = pd.DataFrame([
+        {
+            "job_title": "Data Engineer",
+            "location": "Zurich",
+            "window_start": complete_window,
+            "count": 4,
+            "previous_count": 3.0,
+            "rolling_avg_3": 3.5,
+            "rolling_avg_5": 3.5,
+            "growth_rate": 0.1,
+        },
+        {
+            "job_title": "Data Engineer",
+            "location": "Zurich",
+            "window_start": incomplete_window,
+            "count": 2,
+            "previous_count": 4.0,
+            "rolling_avg_3": 3.0,
+            "rolling_avg_5": 3.0,
+            "growth_rate": -0.2,
+        },
+    ])
+
+    result = build_inference_features(df)
+    assert len(result) == 1
+    assert result.iloc[0]["window_start"] == complete_window
+
+
+def test_build_inference_features_returns_empty_if_all_windows_incomplete():
+    """If every window is still open, the result must be empty."""
+    from pipelines.feature.aggregate import WINDOW_DAYS
+
+    today = pd.Timestamp.now().normalize()
+    incomplete_window = today - pd.Timedelta(days=1)
+
+    df = pd.DataFrame([{
+        "job_title": "Data Engineer",
+        "location": "Zurich",
+        "window_start": incomplete_window,
+        "count": 4,
+        "previous_count": 3.0,
+        "rolling_avg_3": 3.5,
+        "rolling_avg_5": 3.5,
+        "growth_rate": 0.1,
+    }])
+
+    result = build_inference_features(df)
+    assert len(result) == 0
+
+
 # ---------------------------------------------------------------------------
 # drift.compute_reference_stats
 # ---------------------------------------------------------------------------
