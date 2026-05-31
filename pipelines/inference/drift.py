@@ -20,7 +20,7 @@ NUMERIC_FEATURES = [
     "growth_rate",
 ]
 
-DRIFT_THRESHOLD = 2.0  # z-score units; tune as more data accumulates
+DRIFT_THRESHOLD = 1.5  # z-score units; tune as more data accumulates
 
 
 def compute_reference_stats(features: pd.DataFrame) -> dict[str, dict]:
