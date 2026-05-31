@@ -1,0 +1,411 @@
+(job_title, location) pair counts
+Source: data\structured_jobs_20.05_normalized_cleaned.jsonl
+Total records: 7635
+Unique pairs:  404
+---------------------------------------------------------------------------
+ Count  Job Title                                 Location
+---------------------------------------------------------------------------
+   374  Software Engineer / Developer             Zurich
+   299  System Engineer                           Zurich
+   208  IT Support / Helpdesk                     Zurich
+   187  System Engineer                           Bern
+   186  IT Manager / Team Lead                    Zurich
+   152  Software Engineer / Developer             Bern
+   152  IT Support / Helpdesk                     Bern
+   131  Data Engineer / Analyst                   Zurich
+   122  IT Project Manager                        Zurich
+   106  Business Analyst                          Zurich
+   104  SAP Consultant                            Multiple Cantons
+   103  System Engineer                           Aargau
+   102  Cybersecurity Specialist                  Zurich
+    94  SAP Consultant                            Zurich
+    93  IT Manager / Team Lead                    Bern
+    91  System Engineer                           Lucerne
+    87  IT Support / Helpdesk                     Aargau
+    85  Software Engineer / Developer             Aargau
+    83  Others                                    Zurich
+    82  IT Consultant                             Zurich
+    80  Software Engineer / Developer             Vaud
+    79  Business Analyst                          Bern
+    76  IT Architect                              Zurich
+    75  System Engineer                           Multiple Cantons
+    74  IT Project Manager                        Bern
+    72  System Administrator                      Zurich
+    71  Cloud Engineer / Architect                Zurich
+    67  Network Engineer                          Zurich
+    66  DevOps / Platform Engineer                Zurich
+    64  IT Support / Helpdesk                     Lucerne
+    63  IT Manager / Team Lead                    Aargau
+    63  Cybersecurity Specialist                  Bern
+    62  System Engineer                           St. Gallen
+    58  Software Engineer / Developer             St. Gallen
+    58  System Administrator                      Bern
+    48  Product Manager / Owner                   Zurich
+    45  IT Manager / Team Lead                    Lucerne
+    44  SAP Consultant                            Bern
+    41  DevOps / Platform Engineer                Bern
+    39  ERP Consultant                            Zurich
+    39  QA / Test Engineer                        Zurich
+    39  Software Engineer / Developer             Multiple Cantons
+    38  IT Project Manager                        Aargau
+    38  Software Engineer / Developer             Lucerne
+    37  Abacus Specialist                         Zurich
+    35  Software Engineer / Developer             Others
+    35  Product Manager / Owner                   Bern
+    35  Software Engineer / Developer             Valais
+    34  IT Support / Helpdesk                     Vaud
+    34  IT Consultant                             Bern
+    32  System Engineer                           Zug
+    32  Software Engineer / Developer             Zug
+    32  Cloud Engineer / Architect                Bern
+    32  System Engineer                           Others
+    32  Others                                    Bern
+    32  IT Manager / Team Lead                    Multiple Cantons
+    31  IT Architect                              Bern
+    31  IT Support / Helpdesk                     Basel-Stadt
+    31  IT Manager / Team Lead                    Vaud
+    31  QA / Test Engineer                        Bern
+    30  IT Support / Helpdesk                     Solothurn
+    29  Network Engineer                          Bern
+    29  Cybersecurity Specialist                  Lucerne
+    29  Data Engineer / Analyst                   Bern
+    29  Abacus Specialist                         Lucerne
+    28  System Engineer                           Basel-Stadt
+    28  System Administrator                      Aargau
+    27  Database Administrator                    Zurich
+    27  SAP Consultant                            Aargau
+    27  Software Engineer / Developer             Graubünden
+    27  Cloud Engineer / Architect                Aargau
+    27  Software Engineer / Developer             Basel-Stadt
+    27  IT Support / Helpdesk                     St. Gallen
+    27  IT Support / Helpdesk                     Basel-Landschaft
+    27  IT Architect                              Lucerne
+    26  IT Support / Helpdesk                     Geneva
+    26  Others                                    Multiple Cantons
+    26  System Engineer                           Solothurn
+    25  Product Manager / Owner                   Lucerne
+    25  IT Consultant                             Multiple Cantons
+    25  IT Support / Helpdesk                     Multiple Cantons
+    25  Others                                    St. Gallen
+    25  Data Engineer / Analyst                   Aargau
+    24  Software Engineer / Developer             Neuchâtel
+    24  System Engineer                           Vaud
+    24  Cybersecurity Specialist                  Basel-Stadt
+    24  Data Engineer / Analyst                   Lucerne
+    24  Software Engineer / Developer             Solothurn
+    24  IT Manager / Team Lead                    St. Gallen
+    23  IT Manager / Team Lead                    Basel-Stadt
+    22  Software Engineer / Developer             Thurgau
+    22  Others                                    Aargau
+    21  System Engineer                           Fribourg
+    21  Cybersecurity Specialist                  Multiple Cantons
+    21  Business Analyst                          Aargau
+    21  Cybersecurity Specialist                  Aargau
+    20  IT Project Manager                        Vaud
+    20  System Administrator                      Vaud
+    20  DevOps / Platform Engineer                Lucerne
+    20  System Engineer                           Thurgau
+    20  IT Manager / Team Lead                    Zug
+    19  IT Support / Helpdesk                     Others
+    19  IT Project Manager                        Lucerne
+    19  ERP Consultant                            Multiple Cantons
+    18  ERP Consultant                            Aargau
+    18  IT Manager / Team Lead                    Basel-Landschaft
+    18  QA / Test Engineer                        Zug
+    18  SAP Consultant                            Basel-Stadt
+    18  IT Architect                              Aargau
+    18  System Administrator                      Geneva
+    17  IT Support / Helpdesk                     Zug
+    17  Business Analyst                          Lucerne
+    17  System Engineer                           Geneva
+    17  IT Architect                              Multiple Cantons
+    17  Abacus Specialist                         Others
+    17  IT Project Manager                        Solothurn
+    16  Business Analyst                          Vaud
+    16  Network Engineer                          Lucerne
+    16  Software Engineer / Developer             Geneva
+    16  IT Project Manager                        Multiple Cantons
+    16  Cybersecurity Specialist                  Valais
+    16  IT Consultant                             Aargau
+    16  Cloud Engineer / Architect                Lucerne
+    15  Network Engineer                          Aargau
+    15  Others                                    Lucerne
+    15  ERP Consultant                            Solothurn
+    15  Network Engineer                          St. Gallen
+    15  Cloud Engineer / Architect                Basel-Stadt
+    14  System Engineer                           Graubünden
+    14  SAP Consultant                            Basel-Landschaft
+    14  System Engineer                           Basel-Landschaft
+    14  IT Support / Helpdesk                     Fribourg
+    13  Network Engineer                          Vaud
+    13  IT Project Manager                        St. Gallen
+    13  ERP Consultant                            Bern
+    13  DevOps / Platform Engineer                Aargau
+    13  Business Analyst                          Geneva
+    13  IT Project Manager                        Basel-Stadt
+    13  IT Manager / Team Lead                    Thurgau
+    13  Data Engineer / Analyst                   Vaud
+    13  SAP Consultant                            Lucerne
+    13  Product Manager / Owner                   Aargau
+    13  Cybersecurity Specialist                  Zug
+    12  Product Manager / Owner                   Multiple Cantons
+    12  Product Manager / Owner                   Vaud
+    12  Abacus Specialist                         Multiple Cantons
+    12  Others                                    Geneva
+    12  Business Analyst                          Multiple Cantons
+    12  IT Manager / Team Lead                    Graubünden
+    11  SAP Consultant                            St. Gallen
+    11  Others                                    Zug
+    11  System Engineer                           Schaffhausen
+    11  Network Engineer                          Multiple Cantons
+    11  IT Consultant                             Vaud
+    11  Others                                    Vaud
+    11  Network Engineer                          Geneva
+    11  IT Support / Helpdesk                     Graubünden
+    11  IT Project Manager                        Zug
+    11  ERP Consultant                            Lucerne
+    11  IT Support / Helpdesk                     Valais
+    11  QA / Test Engineer                        St. Gallen
+    11  Business Analyst                          St. Gallen
+    10  SAP Consultant                            Solothurn
+    10  IT Manager / Team Lead                    Solothurn
+    10  DevOps / Platform Engineer                Geneva
+    10  Business Analyst                          Basel-Stadt
+    10  System Administrator                      Basel-Stadt
+     9  IT Architect                              St. Gallen
+     9  Others                                    Basel-Stadt
+     9  Software Engineer / Developer             Basel-Landschaft
+     9  Database Administrator                    Lucerne
+     9  IT Support / Helpdesk                     Thurgau
+     9  Database Administrator                    Bern
+     9  Software Engineer / Developer             Fribourg
+     9  Data Engineer / Analyst                   Zug
+     9  Product Manager / Owner                   St. Gallen
+     9  System Administrator                      Solothurn
+     9  Network Engineer                          Zug
+     9  Others                                    Thurgau
+     8  Software Engineer / Developer             Schwyz
+     8  Cybersecurity Specialist                  Geneva
+     8  Others                                    Others
+     8  IT Consultant                             Geneva
+     8  Data Engineer / Analyst                   St. Gallen
+     8  Others                                    Solothurn
+     8  System Administrator                      Schaffhausen
+     8  Scrum Master / Agile Coach                Bern
+     8  Scrum Master / Agile Coach                Lucerne
+     8  IT Manager / Team Lead                    Geneva
+     8  Data Engineer / Analyst                   Multiple Cantons
+     8  Data Engineer / Analyst                   Neuchâtel
+     8  Cybersecurity Specialist                  Schaffhausen
+     8  IT Architect                              Vaud
+     8  Cybersecurity Specialist                  Others
+     8  Cloud Engineer / Architect                St. Gallen
+     7  System Administrator                      Multiple Cantons
+     7  Business Analyst                          Solothurn
+     7  Others                                    Basel-Landschaft
+     7  Network Engineer                          Basel-Stadt
+     7  Cybersecurity Specialist                  Solothurn
+     7  System Engineer                           Schwyz
+     7  IT Manager / Team Lead                    Schwyz
+     7  IT Consultant                             Lucerne
+     7  Cybersecurity Specialist                  Basel-Landschaft
+     7  Others                                    Graubünden
+     7  Cloud Engineer / Architect                Multiple Cantons
+     7  Data Engineer / Analyst                   Solothurn
+     7  IT Project Manager                        Graubünden
+     7  IT Manager / Team Lead                    Others
+     7  IT Support / Helpdesk                     Schaffhausen
+     7  SAP Consultant                            Zug
+     7  Abacus Specialist                         Bern
+     7  IT Manager / Team Lead                    Valais
+     7  Data Engineer / Analyst                   Basel-Stadt
+     7  Data Engineer / Analyst                   Others
+     7  System Administrator                      St. Gallen
+     7  SAP Consultant                            Others
+     7  Cloud Engineer / Architect                Thurgau
+     6  SAP Consultant                            Graubünden
+     6  Product Manager / Owner                   Zug
+     6  Others                                    Neuchâtel
+     6  Abacus Specialist                         Vaud
+     6  Cybersecurity Specialist                  Vaud
+     6  IT Architect                              Basel-Landschaft
+     6  System Administrator                      Valais
+     6  IT Project Manager                        Geneva
+     6  QA / Test Engineer                        Geneva
+     6  System Administrator                      Lucerne
+     6  IT Architect                              Solothurn
+     6  Scrum Master / Agile Coach                Zurich
+     6  Data Engineer / Analyst                   Graubünden
+     6  Software Engineer / Developer             Schaffhausen
+     6  IT Consultant                             St. Gallen
+     6  DevOps / Platform Engineer                Basel-Stadt
+     6  Cloud Engineer / Architect                Basel-Landschaft
+     6  System Administrator                      Basel-Landschaft
+     6  Cybersecurity Specialist                  Graubünden
+     6  Cloud Engineer / Architect                Solothurn
+     6  Data Engineer / Analyst                   Geneva
+     6  DevOps / Platform Engineer                St. Gallen
+     5  Others                                    Schaffhausen
+     5  Data Engineer / Analyst                   Fribourg
+     5  IT Project Manager                        Neuchâtel
+     5  ERP Consultant                            Vaud
+     5  IT Support / Helpdesk                     Neuchâtel
+     5  ERP Consultant                            Schaffhausen
+     5  Business Analyst                          Basel-Landschaft
+     5  System Administrator                      Zug
+     5  SAP Consultant                            Geneva
+     5  IT Consultant                             Zug
+     5  Business Analyst                          Valais
+     5  IT Architect                              Basel-Stadt
+     5  ERP Consultant                            Thurgau
+     5  IT Manager / Team Lead                    Fribourg
+     5  Others                                    Schwyz
+     5  IT Consultant                             Basel-Stadt
+     4  Abacus Specialist                         Basel-Stadt
+     4  IT Support / Helpdesk                     Jura
+     4  Others                                    Fribourg
+     4  Product Manager / Owner                   Graubünden
+     4  IT Support / Helpdesk                     Schwyz
+     4  Business Analyst                          Others
+     4  IT Project Manager                        Fribourg
+     4  Abacus Specialist                         Thurgau
+     4  Data Engineer / Analyst                   Schwyz
+     4  IT Support / Helpdesk                     Uri
+     4  IT Project Manager                        Valais
+     4  IT Project Manager                        Thurgau
+     4  Business Analyst                          Thurgau
+     4  Business Analyst                          Neuchâtel
+     4  System Administrator                      Fribourg
+     4  Network Engineer                          Basel-Landschaft
+     4  IT Project Manager                        Basel-Landschaft
+     4  QA / Test Engineer                        Aargau
+     4  IT Consultant                             Basel-Landschaft
+     4  System Administrator                      Graubünden
+     4  Software Engineer / Developer             Jura
+     4  Cybersecurity Specialist                  Thurgau
+     3  SAP Consultant                            Thurgau
+     3  Product Manager / Owner                   Geneva
+     3  Network Engineer                          Valais
+     3  Cybersecurity Specialist                  Schwyz
+     3  Business Analyst                          Zug
+     3  DevOps / Platform Engineer                Zug
+     3  System Engineer                           Valais
+     3  IT Architect                              Schaffhausen
+     3  IT Project Manager                        Schaffhausen
+     3  QA / Test Engineer                        Multiple Cantons
+     3  IT Consultant                             Schaffhausen
+     3  DevOps / Platform Engineer                Multiple Cantons
+     3  Cloud Engineer / Architect                Geneva
+     3  System Administrator                      Thurgau
+     3  IT Architect                              Neuchâtel
+     3  System Administrator                      Neuchâtel
+     3  Data Engineer / Analyst                   Valais
+     3  IT Architect                              Graubünden
+     3  QA / Test Engineer                        Vaud
+     3  Software Engineer / Developer             Not Specified
+     3  IT Manager / Team Lead                    Uri
+     3  ERP Consultant                            Zug
+     3  Product Manager / Owner                   Thurgau
+     3  IT Consultant                             Valais
+     3  DevOps / Platform Engineer                Vaud
+     3  IT Consultant                             Others
+     3  QA / Test Engineer                        Lucerne
+     3  Database Administrator                    Geneva
+     3  Business Analyst                          Schaffhausen
+     3  IT Support / Helpdesk                     Obwalden
+     3  Database Administrator                    Basel-Stadt
+     3  Network Engineer                          Solothurn
+     3  Data Engineer / Analyst                   Basel-Landschaft
+     2  ERP Consultant                            Basel-Stadt
+     2  Abacus Specialist                         St. Gallen
+     2  Product Manager / Owner                   Others
+     2  IT Project Manager                        Others
+     2  Product Manager / Owner                   Solothurn
+     2  Database Administrator                    Vaud
+     2  DevOps / Platform Engineer                Others
+     2  IT Consultant                             Uri
+     2  Cybersecurity Specialist                  St. Gallen
+     2  Data Engineer / Analyst                   Schaffhausen
+     2  System Engineer                           Neuchâtel
+     2  QA / Test Engineer                        Basel-Stadt
+     2  DevOps / Platform Engineer                Valais
+     2  ERP Consultant                            Graubünden
+     2  IT Manager / Team Lead                    Schaffhausen
+     2  ERP Consultant                            Neuchâtel
+     2  IT Consultant                             Thurgau
+     2  SAP Consultant                            Neuchâtel
+     2  System Administrator                      Jura
+     2  Cybersecurity Specialist                  Neuchâtel
+     2  Business Analyst                          Graubünden
+     2  IT Architect                              Zug
+     2  SAP Consultant                            Fribourg
+     2  Product Manager / Owner                   Schwyz
+     2  IT Consultant                             Neuchâtel
+     2  Network Engineer                          Fribourg
+     2  IT Architect                              Others
+     2  SAP Consultant                            Schaffhausen
+     2  IT Architect                              Geneva
+     2  DevOps / Platform Engineer                Thurgau
+     2  System Administrator                      Schwyz
+     2  IT Project Manager                        Uri
+     2  IT Consultant                             Graubünden
+     2  Database Administrator                    Schwyz
+     2  Abacus Specialist                         Zug
+     2  IT Project Manager                        Schwyz
+     2  Others                                    Valais
+     2  DevOps / Platform Engineer                Solothurn
+     2  Data Engineer / Analyst                   Thurgau
+     2  Network Engineer                          Thurgau
+     2  Network Engineer                          Graubünden
+     2  ERP Consultant                            Valais
+     2  IT Consultant                             Fribourg
+     2  IT Architect                              Thurgau
+     2  QA / Test Engineer                        Neuchâtel
+     2  Product Manager / Owner                   Valais
+     1  Cloud Engineer / Architect                Others
+     1  DevOps / Platform Engineer                Graubünden
+     1  System Administrator                      Others
+     1  Cybersecurity Specialist                  Jura
+     1  ERP Consultant                            Basel-Landschaft
+     1  Cloud Engineer / Architect                Uri
+     1  QA / Test Engineer                        Others
+     1  DevOps / Platform Engineer                Uri
+     1  DevOps / Platform Engineer                Basel-Landschaft
+     1  IT Consultant                             Schwyz
+     1  SAP Consultant                            Vaud
+     1  DevOps / Platform Engineer                Jura
+     1  ERP Consultant                            Others
+     1  Database Administrator                    Others
+     1  IT Manager / Team Lead                    Obwalden
+     1  Cloud Engineer / Architect                Graubünden
+     1  Database Administrator                    Aargau
+     1  IT Manager / Team Lead                    Jura
+     1  IT Architect                              Glarus
+     1  IT Support / Helpdesk                     Glarus
+     1  IT Manager / Team Lead                    Glarus
+     1  Scrum Master / Agile Coach                Solothurn
+     1  Product Manager / Owner                   Glarus
+     1  IT Project Manager                        Glarus
+     1  DevOps / Platform Engineer                Schwyz
+     1  Product Manager / Owner                   Basel-Landschaft
+     1  Scrum Master / Agile Coach                Zug
+     1  Cloud Engineer / Architect                Obwalden
+     1  Network Engineer                          Others
+     1  System Engineer                           Appenzell Ausserrhoden
+     1  System Engineer                           Jura
+     1  IT Manager / Team Lead                    Nidwalden
+     1  Database Administrator                    Zug
+     1  ERP Consultant                            Geneva
+     1  Abacus Specialist                         Uri
+     1  Business Analyst                          Jura
+     1  IT Consultant                             Solothurn
+     1  IT Support / Helpdesk                     Nidwalden
+     1  Database Administrator                    Solothurn
+     1  IT Architect                              Schwyz
+     1  QA / Test Engineer                        Basel-Landschaft
+     1  System Engineer                           Uri
+     1  Software Engineer / Developer             Uri
+     1  Abacus Specialist                         Aargau
+     1  QA / Test Engineer                        Graubünden
+     1  IT Architect                              Fribourg
+     1  Product Manager / Owner                   Basel-Stadt

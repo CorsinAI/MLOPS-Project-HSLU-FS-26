@@ -1,0 +1,29 @@
+Occurrences by job_title
+Source: data\structured_jobs_20.05_normalized_cleaned.jsonl
+Total records: 7635
+Unique values: 22
+-------------------------------------------------------
+ Count  Value
+-------------------------------------------------------
+  1108  Software Engineer / Developer
+  1071  System Engineer
+   821  IT Support / Helpdesk
+   613  IT Manager / Team Lead
+   387  IT Project Manager
+   370  SAP Consultant
+   351  Cybersecurity Specialist
+   323  Business Analyst
+   307  Others
+   307  Data Engineer / Analyst
+   279  System Administrator
+   224  IT Consultant
+   223  IT Architect
+   210  Network Engineer
+   202  Cloud Engineer / Architect
+   184  DevOps / Platform Engineer
+   181  Product Manager / Owner
+   144  ERP Consultant
+   125  QA / Test Engineer
+   122  Abacus Specialist
+    59  Database Administrator
+    24  Scrum Master / Agile Coach
