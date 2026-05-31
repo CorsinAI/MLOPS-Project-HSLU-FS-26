@@ -20,7 +20,7 @@ hopsworks[python]==4.7.5
 # apache-airflow>=2.9
 
 # Data versioning
-dvc==3.67.1
+dvc[azure]==3.67.1
 
 # Testing
 pytest==9.0.3
