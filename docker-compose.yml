@@ -1,4 +1,38 @@
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+  env_file: .env
+  volumes:
+    - ./dags:/opt/airflow/dags
+  depends_on:
+    postgres:
+      condition: service_healthy
+
 services:
+
+  # ---------------------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------------------
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
 
   mlflow:
     build: .
@@ -20,6 +54,43 @@ services:
       timeout: 5s
       retries: 10
 
+  # ---------------------------------------------------------------------------
+  # Airflow
+  # ---------------------------------------------------------------------------
+
+  airflow-init:
+    <<: *airflow-common
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password admin
+               --firstname Admin --lastname User --role Admin
+               --email admin@example.com || true"
+    restart: "no"
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: airflow webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: airflow scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  # ---------------------------------------------------------------------------
+  # ML services
+  # ---------------------------------------------------------------------------
+
   inference:
     build: .
     command: python -m pipelines.inference.run
@@ -33,8 +104,8 @@ services:
         condition: service_healthy
 
   # One-off pipeline jobs — run with:
-  #   docker compose run feature
-  #   docker compose run training
+  #   docker compose --profile pipeline run feature
+  #   docker compose --profile pipeline run training
   feature:
     build: .
     command: python -m pipelines.feature.run
@@ -58,3 +129,4 @@ services:
 
 volumes:
   mlflow_data:
+  postgres_data:
