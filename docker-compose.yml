@@ -1,0 +1,60 @@
+services:
+
+  mlflow:
+    build: .
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/artifacts
+      --serve-artifacts
+      --host 0.0.0.0
+      --port 5000
+      --allowed-hosts "mlflow,mlflow:5000,localhost,localhost:5000,127.0.0.1,127.0.0.1:5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  inference:
+    build: .
+    command: python -m pipelines.inference.run
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    depends_on:
+      mlflow:
+        condition: service_healthy
+
+  # One-off pipeline jobs — run with:
+  #   docker compose run feature
+  #   docker compose run training
+  feature:
+    build: .
+    command: python -m pipelines.feature.run
+    env_file: .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    profiles: [pipeline]
+    volumes:
+      - ./data:/app/data
+
+  training:
+    build: .
+    command: python -m pipelines.training.run
+    env_file: .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    profiles: [pipeline]
+    depends_on:
+      mlflow:
+        condition: service_healthy
+
+volumes:
+  mlflow_data:
