@@ -26,7 +26,8 @@ DEFAULT_PARAMS = {
 }
 
 
-def _eval_metrics(booster: lgb.Booster, X: pd.DataFrame, y: pd.Series, prefix: str) -> dict:
+def _eval_metrics(booster: lgb.Booster, X: pd.DataFrame, y: pd.Series, prefix: str) -> dict[str, float]:
+    """Compute RMSE, MAE and R² for a given split and return them as prefixed keys."""
     preds = booster.predict(X)
     return {
         f"{prefix}_rmse": float(np.sqrt(mean_squared_error(y, preds))),

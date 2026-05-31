@@ -83,4 +83,5 @@ def time_split(
 
 
 def get_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    """Split a dataset DataFrame into feature matrix X and target series y."""
     return df[FEATURES], df[TARGET]

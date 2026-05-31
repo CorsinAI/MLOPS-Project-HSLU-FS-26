@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_feature_store():
+def get_feature_store() -> "hopsworks.feature_store.FeatureStore":
+    """Log in to Hopsworks and return the project's feature store handle."""
     import hopsworks  # imported lazily so the rest of the pipeline works without it
     project = hopsworks.login(
         host=os.environ["HOPSWORKS_HOST"],
@@ -27,6 +28,10 @@ def write_feature_group(
     primary_key: list[str] | None = None,
     event_time: str = "window_start",
 ) -> None:
+    """
+    Insert a feature DataFrame into the Hopsworks feature group, creating it
+    if it does not already exist.
+    """
     if primary_key is None:
         primary_key = ["job_title", "location", "window_start"]
 

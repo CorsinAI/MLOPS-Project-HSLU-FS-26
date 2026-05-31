@@ -13,6 +13,10 @@ DATA_START = datetime(2026, 1, 4)  # earlier data has gaps; exclude to avoid noi
 
 
 def load_postings(path: str | Path) -> pd.DataFrame:
+    """
+    Read a JSONL file of normalized job postings and return a DataFrame
+    with columns: job_title, location, publication_date.
+    """
     records = []
     with open(path) as f:
         for line in f:
