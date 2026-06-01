@@ -38,6 +38,9 @@ def run(push_to_hopsworks: bool = True) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-hopsworks", action="store_true")
+    parser.add_argument(
+        "--no-hopsworks", action="store_true",
+        help="Skip writing features to Hopsworks",
+    )
     args = parser.parse_args()
     run(push_to_hopsworks=not args.no_hopsworks)

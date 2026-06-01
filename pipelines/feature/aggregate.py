@@ -5,6 +5,7 @@ with one row per (job_title, location, window_start).
 import json
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pandas as pd
 
@@ -27,13 +28,19 @@ def _read_jsonl_lines(lines: list[str]) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
-def load_postings() -> pd.DataFrame:
+def load_postings(path: Path | None = None) -> pd.DataFrame:
     """
-    Load job postings from Azure Blob Storage.
+    Load job postings from a local JSONL file or Azure Blob Storage.
 
-    Requires AZURE_SAS_URL environment variable.
+    If `path` is given, reads from that local file (no credentials needed).
+    Otherwise reads from Azure Blob Storage using AZURE_SAS_URL env var.
+
     Returns a DataFrame with columns: job_title, location, publication_date.
     """
+    if path is not None:
+        with open(path, "r", encoding="utf-8") as f:
+            return _read_jsonl_lines(f.read().splitlines())
+
     sas_url = os.environ["AZURE_SAS_URL"]
     from azure.storage.blob import ContainerClient
     blob_name = os.environ.get("AZURE_BLOB_NAME", "structured_jobs_normalized_cleaned.jsonl")

@@ -71,7 +71,7 @@ def main() -> None:
 
     if report["drift_detected"] or stale:
         from pipelines.training.run import run
-        run(from_hopsworks=True)
+        run()
 
 
 if __name__ == "__main__":

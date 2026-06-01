@@ -19,8 +19,6 @@ services:
     command: python -m pipelines.feature.run
     env_file: .env
     profiles: [pipeline]
-    volumes:
-      - ./data:/app/data
 
   training:
     build: .
