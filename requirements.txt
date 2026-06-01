@@ -11,6 +11,7 @@ uvicorn[standard]==0.48.0
 
 # Feature store
 hopsworks[python]==4.7.2
+hops-deltalake==1.4.0.post1
 
 # Azure
 azure-storage-blob==12.25.1
