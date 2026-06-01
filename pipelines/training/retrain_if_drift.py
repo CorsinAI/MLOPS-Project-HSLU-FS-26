@@ -18,6 +18,7 @@ from pipelines.feature.aggregate import WINDOW_DAYS
 from pipelines.feature.hopsworks_reader import read_feature_group
 from pipelines.inference.drift import DRIFT_THRESHOLD, compute_reference_stats, detect_drift
 from pipelines.inference.prepare import build_inference_features
+from pipelines.training.prepare import trim_for_training
 
 MAX_DAYS_WITHOUT_RETRAINING = 21
 
@@ -44,7 +45,8 @@ def main() -> None:
         features["window_start"] + pd.Timedelta(days=WINDOW_DAYS) <= today
     ]
 
-    reference_stats = compute_reference_stats(complete_features)
+    training_features = trim_for_training(complete_features)
+    reference_stats = compute_reference_stats(training_features)
     current = build_inference_features(complete_features)
     report = detect_drift(current, reference_stats)
 

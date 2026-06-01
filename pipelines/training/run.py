@@ -8,7 +8,13 @@ Usage:
 import argparse
 from pathlib import Path
 
-from pipelines.training.prepare import build_dataset, encode_categoricals, time_split
+from pipelines.training.prepare import (
+    HOLDOUT_WINDOWS,
+    build_dataset,
+    encode_categoricals,
+    time_split,
+    trim_for_training,
+)
 
 DEFAULT_INPUT = Path("data/structured_jobs_20.05_normalized_cleaned.jsonl")
 
@@ -29,6 +35,11 @@ def run(input_path: Path = DEFAULT_INPUT, from_hopsworks: bool = False) -> None:
         features = compute_features(counts)
 
     print(f"  {len(features)} feature rows across {features['window_start'].nunique()} windows")
+
+    # --- Hold out the most recent complete windows ---
+    features = trim_for_training(features)
+    print(f"  After holdout: {features['window_start'].nunique()} windows "
+          f"(latest {HOLDOUT_WINDOWS} complete windows reserved for inference)")
 
     # --- Prepare training data ---
     print("Preparing training dataset ...")

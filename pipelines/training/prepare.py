@@ -2,15 +2,48 @@
 Prepares the feature DataFrame for LightGBM training.
 
 Steps:
-  1. Create target: count of the NEXT consecutive window for each (job_title, location)
+  1. Trim the most recent complete windows so the model never trains on data that
+     will later be used as the inference batch (enables meaningful drift detection).
+  2. Create target: count of the NEXT consecutive window for each (job_title, location)
      - Rows followed by a gap (>WINDOW_DAYS) get no target and are dropped
-  2. Drop rows with NaN in lag features (first window of each series)
-  3. Encode categoricals as pandas Categorical (LightGBM reads these natively)
-  4. Time-based 70/20/10 train/val/test split — never shuffle across time
+  3. Drop rows with NaN in lag features (first window of each series)
+  4. Encode categoricals as pandas Categorical (LightGBM reads these natively)
+  5. Time-based 60/20/20 train/val/test split — never shuffle across time
 """
 import pandas as pd
 
 from pipelines.feature.aggregate import WINDOW_DAYS
+
+HOLDOUT_WINDOWS = 2  # most recent complete windows withheld from training
+
+def trim_for_training(
+    features: pd.DataFrame,
+    n_holdout: int = HOLDOUT_WINDOWS,
+) -> pd.DataFrame:
+    """
+    Remove the most recent `n_holdout` complete windows from the feature DataFrame.
+
+    This ensures the model never trains on the windows that will later appear in
+    the inference batch, making drift detection a genuine out-of-sample comparison.
+
+    A window is complete when its end date has passed:
+        window_start + WINDOW_DAYS <= today
+
+    If fewer than n_holdout + 1 complete windows exist, the DataFrame is returned
+    unchanged (not enough history to hold anything out meaningfully).
+    """
+    today = pd.Timestamp.now().normalize()
+    complete_windows = sorted(
+        features.loc[
+            features["window_start"] + pd.Timedelta(days=WINDOW_DAYS) <= today,
+            "window_start",
+        ].unique()
+    )
+    if len(complete_windows) <= n_holdout:
+        return features.copy()
+    cutoff = complete_windows[-(n_holdout + 1)]
+    return features[features["window_start"] <= cutoff].copy()
+
 
 FEATURES = [
     "job_title",

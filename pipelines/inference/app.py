@@ -33,7 +33,7 @@ from pipelines.feature.aggregate import WINDOW_DAYS
 from pipelines.inference.drift import compute_reference_stats, detect_drift
 from pipelines.inference.load_model import load_model
 from pipelines.inference.prepare import build_inference_features
-from pipelines.training.prepare import FEATURES
+from pipelines.training.prepare import FEATURES, trim_for_training
 
 
 def _run_pipeline() -> dict:
@@ -71,8 +71,9 @@ def _run_pipeline() -> dict:
     ]
     forecasts.sort(key=lambda x: x["predicted_count"], reverse=True)
 
-    # --- Drift: current batch vs full historical distribution ---
-    reference_stats = compute_reference_stats(features)
+    # --- Drift: current batch vs training distribution (held-out windows excluded) ---
+    training_features = trim_for_training(features)
+    reference_stats = compute_reference_stats(training_features)
     drift_report = detect_drift(inference_df, reference_stats)
 
     return {

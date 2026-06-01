@@ -16,11 +16,13 @@ from pipelines.feature.aggregate import WINDOW_DAYS
 from pipelines.training.prepare import (
     CATEGORICALS,
     FEATURES,
+    HOLDOUT_WINDOWS,
     TARGET,
     build_dataset,
     encode_categoricals,
     get_X_y,
     time_split,
+    trim_for_training,
 )
 from tests.conftest import make_features_df
 
@@ -35,7 +37,63 @@ def _raw(windows: int = 6) -> pd.DataFrame:
 
 
 # ===========================================================================
-# 1. Dataset Construction
+# 1. Holdout Trimming
+# ===========================================================================
+
+class TestTrimForTraining:
+
+    def test_excludes_last_n_complete_windows(self):
+        features = _raw(windows=6)
+        trimmed = trim_for_training(features, n_holdout=2)
+        all_windows = sorted(features["window_start"].unique())
+        trimmed_windows = set(trimmed["window_start"].unique())
+        assert all_windows[-1] not in trimmed_windows
+        assert all_windows[-2] not in trimmed_windows
+        for w in all_windows[:-2]:
+            assert w in trimmed_windows
+
+    def test_default_holdout_matches_constant(self):
+        """trim_for_training() with no arguments must hold out exactly HOLDOUT_WINDOWS windows."""
+        features = _raw(windows=6)
+        all_windows = sorted(features["window_start"].unique())
+        trimmed = trim_for_training(features)
+        trimmed_windows = sorted(trimmed["window_start"].unique())
+        assert len(trimmed_windows) == len(all_windows) - HOLDOUT_WINDOWS
+
+    def test_does_not_mutate_input(self):
+        features = _raw()
+        original_len = len(features)
+        trim_for_training(features)
+        assert len(features) == original_len
+
+    def test_too_few_windows_returns_all(self):
+        """With fewer windows than n_holdout, the full DataFrame must be returned unchanged."""
+        features = _raw(windows=2)
+        trimmed = trim_for_training(features, n_holdout=3)
+        assert set(trimmed["window_start"].unique()) == set(features["window_start"].unique())
+
+    def test_incomplete_window_not_counted_as_holdout_candidate(self):
+        """A window whose period has not yet closed must not count toward the n_holdout quota."""
+        today = pd.Timestamp.now().normalize()
+        incomplete_start = today - pd.Timedelta(days=1)  # window still open
+
+        features = _raw(windows=4)
+        # Append rows with an incomplete window_start
+        extra = features.iloc[:2].copy()
+        extra["window_start"] = incomplete_start
+        df = pd.concat([features, extra], ignore_index=True)
+
+        trimmed = trim_for_training(df, n_holdout=2)
+        # The incomplete window must not appear in the result
+        assert incomplete_start not in set(trimmed["window_start"])
+        # The 2 most recent *complete* windows must be excluded
+        complete_windows = sorted(features["window_start"].unique())
+        assert complete_windows[-1] not in set(trimmed["window_start"])
+        assert complete_windows[-2] not in set(trimmed["window_start"])
+
+
+# ===========================================================================
+# 2. Dataset Construction  (operates on already-trimmed features)
 # ===========================================================================
 
 class TestBuildDataset:
