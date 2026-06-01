@@ -15,7 +15,7 @@ Job posting demand forecasting for the Swiss job market. An end-to-end ML pipeli
 
 
 **GitHub Actions automation:**
-- Every Friday: Feature Pipeline → conditional retrain
+- Every Friday the Feature Pipeline is automatically called.
 - Every push to `main` or after weekly pipeline success: auto-deploy to HuggingFace Spaces
 
 - **Feature Pipeline**: reads raw job postings from Azure Blob Storage, assigns 7-day windows anchored at 2026-01-04, computes lag and rolling features (`previous_count`, `rolling_avg_3`, `rolling_avg_5`, `growth_rate`), and writes to Hopsworks.
@@ -56,8 +56,8 @@ Note that commands documented in docstrings might only work in Linux terminals b
 
 | Service | URL |
 |---|---|
-| Inference API | http://localhost:8000 |
-| Drift + Dashboard UI | http://localhost:8000 |
+| Inference API (Run by Docker) | http://localhost:8000 |
+| Inference API online | https://huggingface.co/spaces/CorsinAI/MLOPS-Job-Forecasting  |
 | MLflow / Model Registry | https://dagshub.com/CorsinAI/MLOPS-Project-HSLU-FS-26.mlflow |
 
 ---
