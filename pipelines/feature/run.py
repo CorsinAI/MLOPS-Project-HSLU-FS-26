@@ -4,20 +4,19 @@ Entry point for the feature pipeline.
 Usage:
     python -m pipelines.feature.run
     python -m pipelines.feature.run --no-hopsworks
-    python -m pipelines.feature.run --input data/structured_jobs_20.05_normalized_cleaned.jsonl --no-hopsworks
 """
 import argparse
-from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv()
 
 from pipelines.feature.aggregate import load_postings, assign_windows, aggregate_counts
 from pipelines.feature.features import compute_features
 
-DEFAULT_INPUT = Path("data/structured_jobs_20.05_normalized_cleaned.jsonl")
 
-
-def run(input_path: Path = DEFAULT_INPUT, push_to_hopsworks: bool = True) -> None:
-    print(f"Loading postings from {input_path} ...")
-    df = load_postings(input_path)
+def run(push_to_hopsworks: bool = True) -> None:
+    print("Loading postings from Azure Blob Storage ...")
+    df = load_postings()
     print(f"  {len(df)} postings loaded")
 
     df = assign_windows(df)
@@ -39,7 +38,6 @@ def run(input_path: Path = DEFAULT_INPUT, push_to_hopsworks: bool = True) -> Non
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--no-hopsworks", action="store_true")
     args = parser.parse_args()
-    run(args.input, push_to_hopsworks=not args.no_hopsworks)
+    run(push_to_hopsworks=not args.no_hopsworks)

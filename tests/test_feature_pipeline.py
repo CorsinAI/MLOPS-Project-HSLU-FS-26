@@ -1,11 +1,10 @@
 """Smoke tests for the feature pipeline."""
 import json
-from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from pipelines.feature.aggregate import load_postings, assign_windows, aggregate_counts
+from pipelines.feature.aggregate import _read_jsonl_lines, assign_windows, aggregate_counts
 from pipelines.feature.features import compute_features
 
 
@@ -86,15 +85,9 @@ SAMPLE_RECORDS = [
 
 
 @pytest.fixture
-def sample_jsonl(tmp_path: Path) -> Path:
-    p = tmp_path / "postings.jsonl"
-    p.write_text("\n".join(json.dumps(r) for r in SAMPLE_RECORDS))
-    return p
-
-
-@pytest.fixture
-def raw_df(sample_jsonl: Path) -> pd.DataFrame:
-    return load_postings(sample_jsonl)
+def raw_df() -> pd.DataFrame:
+    lines = [json.dumps(r) for r in SAMPLE_RECORDS]
+    return _read_jsonl_lines(lines)
 
 
 @pytest.fixture

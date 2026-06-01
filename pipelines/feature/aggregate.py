@@ -5,7 +5,6 @@ with one row per (job_title, location, window_start).
 import json
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 
 import pandas as pd
@@ -29,28 +28,21 @@ def _read_jsonl_lines(lines: list[str]) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
-def load_postings(path: str | Path | None = None) -> pd.DataFrame:
+def load_postings() -> pd.DataFrame:
     """
-    Load job postings from Azure Blob Storage if AZURE_SAS_URL is set,
-    otherwise fall back to the local file at `path`.
+    Load job postings from Azure Blob Storage.
 
+    Requires AZURE_SAS_URL environment variable.
     Returns a DataFrame with columns: job_title, location, publication_date.
     """
-    sas_url = os.environ.get("AZURE_SAS_URL")
-
-    if sas_url:
-        from azure.storage.blob import BlobClient
-        blob_name = os.environ.get("AZURE_BLOB_NAME", "structured_jobs_normalized_cleaned.jsonl")
-        # Insert blob name into path before the query string
-        parsed = urlparse(sas_url)
-        blob_url = urlunparse(parsed._replace(path=f"{parsed.path}/{blob_name}"))
-        blob = BlobClient.from_blob_url(blob_url)
-        content = blob.download_blob().readall().decode("utf-8")
-        return _read_jsonl_lines(content.splitlines())
-
-    with open(path) as f:
-        return _read_jsonl_lines(f.readlines())
-
+    sas_url = os.environ["AZURE_SAS_URL"]
+    from azure.storage.blob import BlobClient
+    blob_name = os.environ.get("AZURE_BLOB_NAME", "structured_jobs_normalized_cleaned.jsonl")
+    parsed = urlparse(sas_url)
+    blob_url = urlunparse(parsed._replace(path=f"{parsed.path}/{blob_name}"))
+    blob = BlobClient.from_blob_url(blob_url)
+    content = blob.download_blob().readall().decode("utf-8")
+    return _read_jsonl_lines(content.splitlines())
 
 
 def assign_windows(
