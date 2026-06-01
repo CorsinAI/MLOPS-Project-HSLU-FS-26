@@ -19,6 +19,9 @@ hopsworks[python]==4.7.5
 # Orchestration (Linux / Docker only)
 # apache-airflow>=2.9
 
+# Azure
+azure-storage-blob==12.25.1
+
 # Data versioning
 dvc[azure]==3.67.1
 

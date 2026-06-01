@@ -2,7 +2,9 @@
 Reads normalized postings and aggregates them into a time-series DataFrame
 with one row per (job_title, location, window_start).
 """
+import io
 import json
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -12,24 +14,39 @@ WINDOW_DAYS = 7
 DATA_START = datetime(2026, 1, 4)  # earlier data has gaps; exclude to avoid noisy time series
 
 
-def load_postings(path: str | Path) -> pd.DataFrame:
-    """
-    Read a JSONL file of normalized job postings and return a DataFrame
-    with columns: job_title, location, publication_date.
-    """
+def _read_jsonl_lines(lines: list[str]) -> pd.DataFrame:
     records = []
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            rec = json.loads(line)
-            records.append({
-                "job_title": rec["job_title"],
-                "location": rec["location"],
-                "publication_date": datetime.strptime(rec["publication_date"], "%d.%m.%Y"),
-            })
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        rec = json.loads(line)
+        records.append({
+            "job_title": rec["job_title"],
+            "location": rec["location"],
+            "publication_date": datetime.strptime(rec["publication_date"], "%d.%m.%Y"),
+        })
     return pd.DataFrame(records)
+
+
+def load_postings(path: str | Path | None = None) -> pd.DataFrame:
+    """
+    Load job postings from Azure Blob Storage if AZURE_SAS_URL is set,
+    otherwise fall back to the local file at `path`.
+
+    Returns a DataFrame with columns: job_title, location, publication_date.
+    """
+    sas_url = os.environ.get("AZURE_SAS_URL")
+
+    if sas_url:
+        from azure.storage.blob import BlobClient
+        blob_name = os.environ.get("AZURE_BLOB_NAME", "structured_jobs_normalized_cleaned.jsonl")
+        blob = BlobClient.from_blob_url(f"{sas_url}/{blob_name}")
+        content = blob.download_blob().readall().decode("utf-8")
+        return _read_jsonl_lines(content.splitlines())
+
+    with open(path) as f:
+        return _read_jsonl_lines(f.readlines())
 
 
 

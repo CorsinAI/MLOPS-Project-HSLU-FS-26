@@ -9,3 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+# Default command for HuggingFace Spaces (port 7860 required)
+# Docker Compose overrides this with its own command for local use
+CMD ["python", "-m", "pipelines.inference.run", "--host", "0.0.0.0", "--port", "7860"]
