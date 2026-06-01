@@ -77,7 +77,7 @@ def _run_pipeline() -> dict:
 
     return {
         "model_version": model_version,
-        "data_source": "hopsworks" if _USE_HOPSWORKS else str(_DEFAULT_DATA_PATH),
+        "data_source": "hopsworks",
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "forecast_window_start": str(forecast_start.date()),
         "forecast_window_end": str(forecast_end.date()),
