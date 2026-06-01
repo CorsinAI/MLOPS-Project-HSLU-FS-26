@@ -9,6 +9,8 @@ pinned: false
 
 # Job Posting Demand Forecasting
 
+See the result @: https://huggingface.co/spaces/CorsinAI/MLOPS-Job-Forecasting 
+
 Job posting demand forecasting for the Swiss job market. An end-to-end ML pipeline that predicts weekly hiring trends by job title and location.
 
 
@@ -16,9 +18,9 @@ Job posting demand forecasting for the Swiss job market. An end-to-end ML pipeli
 - Every Friday: Feature Pipeline → conditional retrain
 - Every push to `main` or after weekly pipeline success: auto-deploy to HuggingFace Spaces
 
-- **Feature Pipeline** — reads raw job postings from Azure Blob Storage, assigns 7-day windows anchored at 2026-01-04, computes lag and rolling features (`previous_count`, `rolling_avg_3`, `rolling_avg_5`, `growth_rate`), and writes to Hopsworks.
-- **Training Pipeline** — reads features from Hopsworks, holds out the 2 most recent complete windows, performs a 60/20/20 time-based split, trains a LightGBM regressor, logs to MLflow, and registers the model as a new version.
-- **Inference Pipeline** — reads features from Hopsworks, loads the latest registered model version from MLflow, forecasts the next 7-day window for every (job title, location) pair, and runs z-score drift detection comparing the held-out inference batch against the training distribution.
+- **Feature Pipeline**: reads raw job postings from Azure Blob Storage, assigns 7-day windows anchored at 2026-01-04, computes lag and rolling features (`previous_count`, `rolling_avg_3`, `rolling_avg_5`, `growth_rate`), and writes to Hopsworks.
+- **Training Pipeline**: reads features from Hopsworks, holds out the 2 most recent complete windows, performs a 60/20/20 time-based split, trains a LightGBM regressor, logs to MLflow, and registers the model as a new version.
+- **Inference Pipeline**: reads features from Hopsworks, loads the latest registered model version from MLflow, forecasts the next 7-day window for every (job title, location) pair, and runs z-score drift detection comparing the held-out inference batch against the training distribution.
 
 ---
 
@@ -32,7 +34,7 @@ Job posting demand forecasting for the Swiss job market. An end-to-end ML pipeli
 
 **1. Clone the repository**
 ```bash
-git clone <repo-url>
+git clone https://github.com/CorsinAI/MLOPS-Project-HSLU-FS-26
 cd MLOPS-Project-HSLU-FS-26
 ```
 
@@ -41,23 +43,13 @@ cd MLOPS-Project-HSLU-FS-26
 cp .env.example .env
 ```
 
-`.env.example` contains working credentials for Azure Blob Storage, DagsHub MLflow, and Hopsworks — no changes needed for a quick start.
+`.env.example` contains working credentials for Azure Blob Storage, DagsHub MLflow, and Hopsworks.
 
 **3. Start Docker Desktop**, then bring up the inference service:
 ```bash
 docker compose up --build
 ```
-
-**4. Register the model** (first run only):
-```bash
-docker compose --profile pipeline run training
-```
-
-**5. Restart** so the inference service picks up the registered model:
-```bash
-docker compose up
-```
-
+Note that commands documented in docstrings might only work in Linux terminals because of dependency issues.
 ---
 
 ## Services
@@ -66,9 +58,7 @@ docker compose up
 |---|---|
 | Inference API | http://localhost:8000 |
 | Drift + Dashboard UI | http://localhost:8000 |
-| API Docs (Swagger) | http://localhost:8000/docs |
 | MLflow / Model Registry | https://dagshub.com/CorsinAI/MLOPS-Project-HSLU-FS-26.mlflow |
-| Live inference service | https://huggingface.co/spaces/CorsinAI/MLOPS-Job-Forecasting |
 
 ---
 
