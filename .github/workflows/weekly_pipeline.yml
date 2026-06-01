@@ -8,8 +8,6 @@ on:
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
-    permissions:
-      actions: write
 
     steps:
       - name: Checkout code
@@ -42,7 +40,3 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: python -m pipelines.training.retrain_if_drift
 
-      - name: Trigger HuggingFace deploy
-        run: gh workflow run deploy_hf.yml --ref main
-        env:
-          GH_TOKEN: ${{ github.token }}
