@@ -7,31 +7,14 @@ sdk: docker
 pinned: false
 ---
 
-# Job Posting Demand Forecasting — MLOps Pipeline
+# Job Posting Demand Forecasting
 
-A production-style MLOps project that forecasts weekly job posting demand across Swiss job titles and locations. Built on the FTI (Feature / Training / Inference) pipeline architecture with Hopsworks as the feature store, DagsHub-hosted MLflow for experiment tracking and model registry, and a FastAPI service hosted on HuggingFace Spaces.
+Job posting demand forecasting for the Swiss job market. An end-to-end ML pipeline that predicts weekly hiring trends by job title and location.
 
----
-
-## Architecture
-
-```
-Azure Blob Storage  (raw JSONL postings)
-        |
-        v
-  Feature Pipeline  ──────────────────►  Hopsworks Feature Store
-                                                  |
-                                                  v
-                                       Training Pipeline  ──►  DagsHub MLflow Registry
-                                                                       |
-                                                                       v
-                                                              Inference Service
-                                                              FastAPI · HuggingFace Spaces
-                                                              /drift  /dashboard
 
 GitHub Actions
   - Every Friday:  Feature Pipeline → conditional retrain
-  - Every push to main:  auto-deploy to HuggingFace Spaces
+  - Every push to main / Every Friday:  auto-deploy to HuggingFace Spaces
 ```
 
 - **Feature Pipeline** — reads raw job postings from Azure Blob Storage, assigns 7-day windows anchored at 2026-01-04, computes lag and rolling features (`previous_count`, `rolling_avg_3`, `rolling_avg_5`, `growth_rate`), and writes to Hopsworks.
