@@ -26,11 +26,6 @@ def trim_for_training(
     This ensures the model never trains on the windows that will later appear in
     the inference batch, making drift detection a genuine out-of-sample comparison.
 
-    A window is complete when its end date has passed:
-        window_start + WINDOW_DAYS <= today
-
-    If fewer than n_holdout + 1 complete windows exist, the DataFrame is returned
-    unchanged (not enough history to hold anything out meaningfully).
     """
     today = pd.Timestamp.now().normalize()
     complete_windows = sorted(

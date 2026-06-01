@@ -5,13 +5,12 @@ make_features_df() is a module-level helper (importable by test modules)
 that builds a synthetic feature DataFrame with consecutive 7-day windows.
 Fixtures raw_df, counts_df, and features_df are auto-discovered by pytest.
 """
-import json
 from datetime import datetime, timedelta
 
 import pandas as pd
 import pytest
 
-from pipelines.feature.aggregate import _read_jsonl_lines, assign_windows, aggregate_counts
+from pipelines.feature.aggregate import assign_windows, aggregate_counts
 
 # ---------------------------------------------------------------------------
 # Minimal raw records — only the three fields the pipeline actually reads
@@ -65,7 +64,14 @@ def make_features_df(windows_per_pair: int = 6) -> pd.DataFrame:
 @pytest.fixture
 def raw_df() -> pd.DataFrame:
     """Parsed DataFrame from SAMPLE_RECORDS (no windowing applied)."""
-    return _read_jsonl_lines([json.dumps(r) for r in SAMPLE_RECORDS])
+    records = []
+    for r in SAMPLE_RECORDS:
+        records.append({
+            "job_title": r["job_title"],
+            "location": r["location"],
+            "publication_date": datetime.strptime(r["publication_date"], "%d.%m.%Y"),
+        })
+    return pd.DataFrame(records)
 
 
 @pytest.fixture

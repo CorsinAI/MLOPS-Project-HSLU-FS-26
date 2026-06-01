@@ -21,6 +21,7 @@ def build_inference_features(features: pd.DataFrame) -> pd.DataFrame:
 
     Rows where lag features are NaN (first window of a series) are dropped
     because the model cannot produce a meaningful prediction without them.
+    This is also the reason 7-day windows are introduced instead of 3-day windows. 
 
     Returns a DataFrame with the same columns as the training feature set,
     reset to a 0-based integer index.
