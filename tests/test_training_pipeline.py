@@ -1,122 +1,219 @@
-"""Smoke tests for the training pipeline."""
+"""
+Unit tests — Training Pipeline
+================================
+Covers the prepare module in order of the training data flow:
+  1. build_dataset       — target creation, NaN dropping, gap filtering
+  2. encode_categoricals — dtype casting
+  3. time_split          — temporal ordering, no leakage
+  4. get_X_y             — feature / target extraction
+"""
+from datetime import datetime, timedelta
+
 import pandas as pd
 import pytest
 
+from pipelines.feature.aggregate import WINDOW_DAYS
 from pipelines.training.prepare import (
-    build_dataset,
-    encode_categoricals,
-    time_split,
-    get_X_y,
+    CATEGORICALS,
     FEATURES,
     TARGET,
-    CATEGORICALS,
+    build_dataset,
+    encode_categoricals,
+    get_X_y,
+    time_split,
 )
+from tests.conftest import make_features_df
 
 
 # ---------------------------------------------------------------------------
-# Minimal feature DataFrame that mirrors real pipeline output
+# Shared helper — uses real WINDOW_DAYS (7) spacing so build_dataset keeps rows
 # ---------------------------------------------------------------------------
 
-def make_features():
-    """Three consecutive windows for two (title, location) pairs."""
-    rows = []
-    from datetime import datetime, timedelta
-    base = datetime(2026, 1, 4)
-    for title, loc in [("System Engineer", "Zurich"), ("IT Support / Helpdesk", "Bern")]:
-        for i in range(6):
-            rows.append({
-                "job_title": title,
-                "location": loc,
-                "window_start": pd.Timestamp(base + timedelta(days=3 * i)),
-                "count": 5 + i,
-                "previous_count": float(4 + i) if i > 0 else float("nan"),
-                "rolling_avg_3": float(4 + i) if i > 0 else float("nan"),
-                "rolling_avg_5": float(4 + i) if i > 0 else float("nan"),
-                "growth_rate": 0.1 * i if i > 0 else float("nan"),
-                "day_of_week": (base + timedelta(days=3 * i)).weekday(),
-                "month": (base + timedelta(days=3 * i)).month,
-            })
-    return pd.DataFrame(rows)
+def _raw(windows: int = 6) -> pd.DataFrame:
+    """Synthetic feature DataFrame with correct 7-day window spacing."""
+    return make_features_df(windows_per_pair=windows)
 
 
-@pytest.fixture
-def features_df():
-    return make_features()
+# ===========================================================================
+# 1. Dataset Construction
+# ===========================================================================
+
+class TestBuildDataset:
+
+    def test_target_column_is_present(self):
+        ds = build_dataset(_raw())
+        assert TARGET in ds.columns
+
+    def test_drops_nan_lag_rows(self):
+        """Rows where previous_count or growth_rate are NaN must be excluded."""
+        ds = build_dataset(_raw())
+        assert ds["previous_count"].isna().sum() == 0
+        assert ds["growth_rate"].isna().sum() == 0
+
+    def test_last_window_per_pair_is_dropped(self):
+        """The last window has no successor, so it cannot produce a target."""
+        ds = build_dataset(_raw(windows=4))
+        # Per pair: window 0 dropped (NaN lag), windows 1-2 kept, window 3 dropped (no next)
+        assert len(ds) == (4 - 2) * 2   # 2 kept × 2 pairs
+
+    def test_target_equals_next_window_count(self):
+        """Each row's target must equal the count of the immediately following window."""
+        ds = build_dataset(_raw())
+        de_z = (
+            ds[(ds["job_title"] == "Data Engineer") & (ds["location"] == "Zurich")]
+            .sort_values("window_start")
+            .reset_index(drop=True)
+        )
+        for i in range(len(de_z) - 1):
+            assert de_z.loc[i, TARGET] == de_z.loc[i + 1, "count"]
+
+    def test_gap_rows_are_dropped(self):
+        """A row followed by a non-consecutive window must not appear in the dataset."""
+        base = datetime(2026, 1, 4)
+        df = pd.DataFrame([
+            {
+                "job_title": "A", "location": "B",
+                "window_start": pd.Timestamp(base),
+                "count": 3, "previous_count": float("nan"),
+                "rolling_avg_3": float("nan"), "rolling_avg_5": float("nan"),
+                "growth_rate": float("nan"),
+            },
+            {
+                "job_title": "A", "location": "B",
+                "window_start": pd.Timestamp(base + timedelta(days=WINDOW_DAYS)),
+                "count": 4, "previous_count": 3.0,
+                "rolling_avg_3": 3.0, "rolling_avg_5": 3.0, "growth_rate": 0.25,
+            },
+            # Gap is 2× WINDOW_DAYS — next window is not consecutive
+            {
+                "job_title": "A", "location": "B",
+                "window_start": pd.Timestamp(base + timedelta(days=WINDOW_DAYS * 3)),
+                "count": 5, "previous_count": 4.0,
+                "rolling_avg_3": 4.0, "rolling_avg_5": 4.0, "growth_rate": 0.2,
+            },
+        ])
+        ds = build_dataset(df)
+        # base: NaN lag → dropped; WINDOW_DAYS: gap to next = 14 ≠ 7 → dropped; WINDOW_DAYS*3: no next → dropped
+        assert len(ds) == 0
+
+    def test_empty_input_returns_empty_dataset(self):
+        # Explicit dtypes are required so the datetime subtraction inside
+        # build_dataset doesn't receive an object-typed window_start column.
+        empty = pd.DataFrame({
+            "job_title": pd.Series([], dtype=str),
+            "location": pd.Series([], dtype=str),
+            "window_start": pd.Series([], dtype="datetime64[ns]"),
+            "count": pd.Series([], dtype=float),
+            "previous_count": pd.Series([], dtype=float),
+            "rolling_avg_3": pd.Series([], dtype=float),
+            "rolling_avg_5": pd.Series([], dtype=float),
+            "growth_rate": pd.Series([], dtype=float),
+        })
+        ds = build_dataset(empty)
+        assert len(ds) == 0
 
 
-@pytest.fixture
-def dataset(features_df):
-    return build_dataset(features_df)
+# ===========================================================================
+# 2. Categorical Encoding
+# ===========================================================================
+
+class TestEncodeCategoricals:
+
+    @pytest.fixture
+    def dataset(self):
+        return build_dataset(_raw())
+
+    def test_categorical_columns_have_category_dtype(self, dataset):
+        encoded = encode_categoricals(dataset)
+        for col in CATEGORICALS:
+            assert encoded[col].dtype.name == "category", f"{col} should be category dtype"
+
+    def test_numeric_columns_are_unchanged(self, dataset):
+        encoded = encode_categoricals(dataset)
+        assert pd.api.types.is_numeric_dtype(encoded["count"])
+        assert pd.api.types.is_numeric_dtype(encoded["previous_count"])
+
+    def test_does_not_mutate_input(self, dataset):
+        original_dtype = dataset["job_title"].dtype
+        encode_categoricals(dataset)
+        assert dataset["job_title"].dtype == original_dtype
 
 
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 3. Time Split
+# ===========================================================================
 
-def test_build_dataset_has_target(dataset):
-    assert TARGET in dataset.columns
+class TestTimeSplit:
 
+    @pytest.fixture
+    def dataset(self):
+        return build_dataset(_raw(windows=8))
 
-def test_build_dataset_drops_nan_lag_rows(dataset, features_df):
-    # Rows with NaN previous_count (first window) must be gone
-    assert dataset["previous_count"].isna().sum() == 0
+    def test_train_precedes_val_precedes_test(self, dataset):
+        train, val, test = time_split(dataset)
+        assert train["window_start"].max() < val["window_start"].min()
+        assert val["window_start"].max() < test["window_start"].min()
 
+    def test_all_rows_are_preserved(self, dataset):
+        train, val, test = time_split(dataset)
+        assert len(train) + len(val) + len(test) == len(dataset)
 
-def test_build_dataset_target_is_next_count(dataset):
-    # For each row, target should equal count of the next consecutive window
-    se = dataset[(dataset["job_title"] == "System Engineer") & (dataset["location"] == "Zurich")]
-    se = se.sort_values("window_start").reset_index(drop=True)
-    for i in range(len(se) - 1):
-        assert se.loc[i, TARGET] == se.loc[i + 1, "count"]
+    def test_splits_are_disjoint(self, dataset):
+        train, val, test = time_split(dataset)
+        train_w = set(train["window_start"])
+        val_w = set(val["window_start"])
+        test_w = set(test["window_start"])
+        assert not train_w & val_w
+        assert not train_w & test_w
+        assert not val_w & test_w
 
+    def test_train_is_largest_split(self, dataset):
+        train, val, test = time_split(dataset)
+        assert len(train) >= len(val)
+        assert len(train) >= len(test)
 
-def test_build_dataset_no_gap_rows(dataset):
-    # No row should have a target derived from a non-consecutive window
-    from pipelines.feature.aggregate import WINDOW_DAYS
-    for (title, loc), grp in dataset.groupby(["job_title", "location"]):
-        grp = grp.sort_values("window_start")
-        diffs = grp["window_start"].diff().dropna().dt.days
-        assert (diffs == WINDOW_DAYS).all()
-
-
-def test_encode_categoricals(dataset):
-    encoded = encode_categoricals(dataset)
-    for col in CATEGORICALS:
-        assert encoded[col].dtype.name == "category"
-
-
-def test_time_split_no_leakage(dataset):
-    train, val, test = time_split(dataset)
-    # Strictly ordered: train < val < test
-    assert train["window_start"].max() < val["window_start"].min()
-    assert val["window_start"].max() < test["window_start"].min()
-    # No rows lost
-    assert len(train) + len(val) + len(test) == len(dataset)
-
-
-def test_time_split_proportions():
-    # Use 10 windows so 70/20/10 divides cleanly
-    from datetime import datetime, timedelta
-    base = datetime(2026, 1, 4)
-    rows = []
-    for title, loc in [("System Engineer", "Zurich")]:
-        for i in range(1, 11):  # windows 1-10 (skip window 0 — no lag)
-            rows.append({
-                "job_title": title, "location": loc,
-                "window_start": pd.Timestamp(base + timedelta(days=3 * i)),
-                "count": 5, "previous_count": 4.0, "rolling_avg_3": 4.0,
-                "rolling_avg_5": 4.0, "growth_rate": 0.1,
-                "day_of_week": 0, "month": 1, "target": 5.0,
-            })
-    df = pd.DataFrame(rows)
-    train, val, test = time_split(df, train_frac=0.7, val_frac=0.2)
-    n = 10
-    assert len(train["window_start"].unique()) == int(n * 0.7)
-    assert len(val["window_start"].unique()) == int(n * 0.2)
-    assert len(test["window_start"].unique()) == n - int(n * 0.7) - int(n * 0.2)
+    def test_custom_fractions_are_respected(self):
+        """With 10 unique windows and 0.7/0.2 split → train=7, val=2, test=1."""
+        base = datetime(2026, 1, 4)
+        rows = [
+            {
+                "job_title": "A", "location": "B",
+                "window_start": pd.Timestamp(base + timedelta(days=WINDOW_DAYS * i)),
+                "count": 5, "previous_count": 4.0,
+                "rolling_avg_3": 4.0, "rolling_avg_5": 4.0,
+                "growth_rate": 0.1, "target": 5.0,
+            }
+            for i in range(1, 11)  # windows 1–10 (window 0 has NaN lag, skip it)
+        ]
+        df = pd.DataFrame(rows)
+        train, val, test = time_split(df, train_frac=0.7, val_frac=0.2)
+        assert len(train["window_start"].unique()) == 7
+        assert len(val["window_start"].unique()) == 2
+        assert len(test["window_start"].unique()) == 1
 
 
-def test_get_X_y_columns(dataset):
-    X, y = get_X_y(dataset)
-    assert list(X.columns) == FEATURES
-    assert y.name == TARGET
+# ===========================================================================
+# 4. Feature / Target Extraction
+# ===========================================================================
+
+class TestGetXY:
+
+    @pytest.fixture
+    def dataset(self):
+        return build_dataset(_raw())
+
+    def test_X_has_exactly_feature_columns(self, dataset):
+        X, _ = get_X_y(dataset)
+        assert list(X.columns) == FEATURES
+
+    def test_y_has_target_name(self, dataset):
+        _, y = get_X_y(dataset)
+        assert y.name == TARGET
+
+    def test_target_not_in_X(self, dataset):
+        X, _ = get_X_y(dataset)
+        assert TARGET not in X.columns
+
+    def test_X_and_y_have_same_length(self, dataset):
+        X, y = get_X_y(dataset)
+        assert len(X) == len(y)
