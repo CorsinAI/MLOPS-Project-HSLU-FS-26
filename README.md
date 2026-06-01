@@ -56,8 +56,8 @@ Note that commands documented in docstrings might only work in Linux terminals b
 
 | Service | URL |
 |---|---|
-| Inference API | http://localhost:8000 |
-| Drift + Dashboard UI | http://localhost:8000 |
+| Inference API (Run by Docker) | http://localhost:8000 |
+| Inference API online | https://huggingface.co/spaces/CorsinAI/MLOPS-Job-Forecasting  |
 | MLflow / Model Registry | https://dagshub.com/CorsinAI/MLOPS-Project-HSLU-FS-26.mlflow |
 
 ---
