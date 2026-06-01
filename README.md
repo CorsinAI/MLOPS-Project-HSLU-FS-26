@@ -76,14 +76,8 @@ docker compose up
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/` | Landing page (Drift + Dashboard UI) |
 | GET | `/drift` | Feature drift report (JSON) |
 | GET | `/dashboard` | Interactive HTML dashboard |
-| GET | `/forecasts` | All forecasts, filterable by `role` and `location` |
-| GET | `/forecasts/{job_title}` | Forecasts for a specific role |
-| GET | `/health` | Liveness probe |
-| POST | `/refresh` | Reload data + model, regenerate forecasts |
-| GET | `/docs` | Swagger UI |
 
 ---
 

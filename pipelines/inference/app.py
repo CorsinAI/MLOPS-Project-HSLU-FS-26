@@ -12,11 +12,9 @@ On startup the app:
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from typing import Optional
-
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 
 from pipelines.feature.aggregate import WINDOW_DAYS
 from pipelines.inference.drift import compute_reference_stats, detect_drift
@@ -107,78 +105,6 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def index():
-    """Landing page with interactive UI for all endpoints."""
-    from pipelines.inference.landing import render
-    return render()
-
-
-@app.get("/health", summary="Liveness / readiness probe")
-def health():
-    state = app.state.pipeline
-    return {
-        "status": "ok",
-        "model_version": state["model_version"],
-        "generated_at": state["generated_at"],
-        "num_pairs": state["num_pairs"],
-    }
-
-
-@app.get("/forecasts", summary="All 7-day-ahead forecasts")
-def get_forecasts(
-    role: Optional[str] = Query(None, description="Filter by job_title (case-insensitive substring)"),
-    location: Optional[str] = Query(None, description="Filter by location (case-insensitive substring)"),
-):
-    """
-    Returns all forecast rows, sorted by predicted_count descending.
-    Optionally filtered by role and/or location substring.
-    """
-    state = app.state.pipeline
-    results = state["forecasts"]
-
-    if role:
-        role_lower = role.lower()
-        results = [f for f in results if role_lower in f["job_title"].lower()]
-    if location:
-        loc_lower = location.lower()
-        results = [f for f in results if loc_lower in f["location"].lower()]
-
-    return {
-        "generated_at": state["generated_at"],
-        "forecast_window_start": state["forecast_window_start"],
-        "forecast_window_end": state["forecast_window_end"],
-        "model_version": state["model_version"],
-        "count": len(results),
-        "forecasts": results,
-    }
-
-
-@app.get("/forecasts/{job_title}", summary="Forecasts for a specific role")
-def get_forecasts_by_role(job_title: str):
-    """
-    Returns all location forecasts for the given job_title (exact match, case-insensitive).
-    Raises 404 if the role is not recognised.
-    """
-    state = app.state.pipeline
-    results = [
-        f for f in state["forecasts"]
-        if f["job_title"].lower() == job_title.lower()
-    ]
-    if not results:
-        raise HTTPException(status_code=404, detail=f"Role '{job_title}' not found in forecasts.")
-
-    return {
-        "generated_at": state["generated_at"],
-        "forecast_window_start": state["forecast_window_start"],
-        "forecast_window_end": state["forecast_window_end"],
-        "model_version": state["model_version"],
-        "job_title": job_title,
-        "count": len(results),
-        "forecasts": results,
-    }
-
-
 @app.get("/drift", summary="Feature drift report")
 def get_drift():
     """
@@ -200,18 +126,3 @@ def dashboard():
     return render(app.state.pipeline)
 
 
-@app.post("/refresh", summary="Reload data and regenerate forecasts")
-def refresh():
-    """
-    Reruns the full pipeline (Hopsworks read → model load → forecasts → drift).
-    Use this after new features have been written to Hopsworks or a new model
-    version has been registered in MLflow.
-    """
-    app.state.pipeline = _run_pipeline()
-    state = app.state.pipeline
-    return {
-        "status": "refreshed",
-        "generated_at": state["generated_at"],
-        "model_version": state["model_version"],
-        "num_pairs": state["num_pairs"],
-    }
