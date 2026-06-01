@@ -8,57 +8,7 @@ The system follows the FTI (Feature / Training / Inference) pipeline pattern. Ea
 
 ## Data Flow
 
-```
-Azure Blob Storage
-  structured_jobs_normalized_cleaned.jsonl
-        │
-        │  load_postings()
-        ▼
-  ┌─────────────────────────────────────────────────────┐
-  │  Feature Pipeline  (pipelines/feature/)             │
-  │                                                     │
-  │  1. Parse JSONL → (job_title, location, date)       │
-  │  2. Drop postings before 2026-01-04                 │
-  │  3. Bin into 7-day windows                          │
-  │  4. Count postings per (title, location, window)    │
-  │  5. Compute lag features per time-series:           │
-  │       previous_count, rolling_avg_3,                │
-  │       rolling_avg_5, growth_rate                    │
-  └─────────────┬───────────────────────────────────────┘
-                │  write_feature_group()
-                ▼
-        Hopsworks Feature Store
-          feature group: job_postings_features
-                │
-        ┌───────┴───────────────────────────────────────┐
-        │                                               │
-        │  read_feature_group()                         │  read_feature_group()
-        ▼                                               ▼
-  ┌───────────────────────────────┐      ┌───────────────────────────────────┐
-  │  Training Pipeline            │      │  Inference Pipeline               │
-  │  (pipelines/training/)        │      │  (pipelines/inference/)           │
-  │                               │      │                                   │
-  │  1. trim_for_training()       │      │  1. build_inference_features()    │
-  │     hold out last 2 complete  │      │     select latest complete window │
-  │     windows                   │      │     per (title, location) pair    │
-  │  2. build_dataset()           │      │                                   │
-  │     add target (next count),  │      │  2. booster.predict()             │
-  │     drop NaN lag rows         │      │     → forecast next window        │
-  │  3. time_split() 60/20/20     │      │                                   │
-  │  4. LightGBM train            │      │  3. detect_drift()                │
-  │  5. Log to MLflow             │      │     compare inference batch vs    │
-  │  6. Promote champion          │      │     training distribution         │
-  └───────────┬───────────────────┘      └────────────────┬──────────────────┘
-              │  register model                           │  serve via FastAPI
-              ▼                                           ▼
-     DagsHub MLflow Registry               HuggingFace Spaces
-       experiment: job_posting_forecast       GET /drift
-       alias: champion                        GET /dashboard
-                                              GET /forecasts
-                                              GET /health
-```
-
----
+<img width="1760" height="1727" alt="image" src="https://github.com/user-attachments/assets/58d7838c-f336-4afe-aadf-3470fae2108f" />
 
 ## Components
 
