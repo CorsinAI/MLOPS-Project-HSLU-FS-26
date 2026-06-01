@@ -3,29 +3,30 @@
 ## Architecture
 
 ```
-Raw Data (JSONL)
+Azure Blob Storage (JSONL)
       |
       v
 [Feature Pipeline] --> [Hopsworks Feature Store]
                                 |
                                 v
-                      [Training Pipeline] --> [MLflow Registry]
+                      [Training Pipeline] --> [DagsHub MLflow Registry]
                                                      |
                                                      v
                                            [Inference Service]
-                                           FastAPI / Uvicorn
-                                           /forecasts  /drift
+                                           FastAPI / HuggingFace Spaces
+                                           /forecasts  /drift  /dashboard
 
-[Airflow Scheduler]
-  - Feature Pipeline: Friday 06:00
-  - Training Pipeline: Friday 07:00 (drift-triggered)
+[GitHub Actions — every Friday]
+  - Feature Pipeline: fetch latest data, update feature store
+  - Training Pipeline: retrain if drift > 1.5 std devs
 ```
 
 ## Description
 
 A demand forecasting system for the Swiss job market. Raw job postings are
-aggregated into 7-day windows and stored in a Hopsworks feature store. A
-LightGBM model is trained on lag and rolling features and tracked via MLflow.
-The best model is automatically promoted to production. Retraining triggers
-when feature drift exceeds 1.5 standard deviations. Forecasts are served via
-a FastAPI REST API. The full stack runs in Docker.
+fetched from Azure Blob Storage, aggregated into 7-day windows, and stored
+in a Hopsworks feature store. A LightGBM model is trained on lag and rolling
+features and tracked via MLflow on DagsHub. The best model is automatically
+promoted to the champion alias. Retraining triggers when feature drift exceeds
+1.5 standard deviations. Forecasts are served via a FastAPI REST API hosted
+on HuggingFace Spaces. Pipelines are orchestrated weekly by GitHub Actions.

@@ -9,31 +9,36 @@ pinned: false
 
 # Job Posting Demand Forecasting — MLOps Pipeline
 
-A production-style MLOps project that forecasts job posting demand across Swiss job titles and cantons. Built on the FTI (Feature, Training, Inference) pipeline architecture with a Hopsworks feature store, MLflow experiment tracking, and a FastAPI serving layer — all containerized with Docker.
+A production-style MLOps project that forecasts job posting demand across Swiss job titles and cantons. Built on the FTI (Feature, Training, Inference) pipeline architecture with a Hopsworks feature store, DagsHub-hosted MLflow experiment tracking, and a FastAPI serving layer hosted on HuggingFace Spaces.
 
 ---
 
 ## Architecture
 
 ```
-Raw Data (JSONL)
+Azure Blob Storage (JSONL)
       |
       v
 Feature Pipeline  -->  Hopsworks Feature Store
                               |
                               v
-                    Training Pipeline  -->  MLflow Registry
+                    Training Pipeline  -->  DagsHub MLflow Registry
                                                   |
                                                   v
                                         Inference Service (FastAPI)
+                                        HuggingFace Spaces
                                                   |
                                           /forecasts  /drift  /dashboard
+
+GitHub Actions (every Friday)
+  - Feature Pipeline: update feature store
+  - Training Pipeline: retrain if drift detected
 ```
 
 The stack is split into three independent pipelines:
 
-- **Feature Pipeline** — loads raw job postings, assigns 7-day windows, computes lag and rolling features, and writes to the Hopsworks feature store.
-- **Training Pipeline** — reads features from Hopsworks, performs a time-based train/val/test split, trains a LightGBM model, and logs all metrics and artifacts to MLflow.
+- **Feature Pipeline** — loads raw job postings from Azure Blob Storage, assigns 7-day windows, computes lag and rolling features, and writes to the Hopsworks feature store.
+- **Training Pipeline** — reads features from Hopsworks, performs a time-based train/val/test split, trains a LightGBM model, and logs all metrics and artifacts to MLflow on DagsHub.
 - **Inference Pipeline** — reads the latest complete feature window from Hopsworks, loads the registered model from MLflow, generates forecasts, and serves them via a REST API with drift monitoring.
 
 ---
@@ -58,15 +63,14 @@ cd MLOPS-Project-HSLU-FS-26
 cp .env.example .env
 ```
 
-Edit `.env` and fill in your Hopsworks credentials:
+The `.env.example` contains working read-only credentials for Azure Blob Storage and DagsHub MLflow. Fill in your own Hopsworks credentials:
 ```
 HOPSWORKS_HOST=your-hopsworks-host.cloud.hopsworks.ai
 HOPSWORKS_API_KEY=your-api-key-here
 HOPSWORKS_PROJECT=your-project-name
-USE_HOPSWORKS=true
 ```
 
-**3. Start Docker Desktop**, then bring up the stack:
+**3. Start Docker Desktop**, then bring up the inference service:
 ```bash
 docker compose up --build
 ```
@@ -90,7 +94,7 @@ docker compose up
 | Inference API | http://localhost:8000 | FastAPI forecast service |
 | API Docs | http://localhost:8000/docs | Auto-generated Swagger UI |
 | Dashboard | http://localhost:8000/dashboard | Interactive forecast + drift dashboard |
-| MLflow UI | http://localhost:5000 | Experiment tracking and model registry |
+| MLflow UI | https://dagshub.com/CorsinAI/MLOPS-Project-HSLU-FS-26.mlflow | Experiment tracking and model registry (DagsHub) |
 
 ---
 
@@ -107,6 +111,17 @@ docker compose up
 
 ---
 
+## Orchestration
+
+Pipelines run automatically every Friday via GitHub Actions:
+
+1. **Feature pipeline** — fetches latest data from Azure Blob Storage and updates the Hopsworks feature store.
+2. **Training pipeline** — checks for feature drift; retrains and promotes a new champion model if drift exceeds 1.5 standard deviations.
+
+To trigger manually: GitHub → Actions → Weekly ML Pipeline → Run workflow.
+
+---
+
 ## Running Pipelines Manually
 
 **Feature pipeline** — ingest new data and update the feature store:
@@ -119,19 +134,12 @@ docker compose --profile pipeline run feature
 docker compose --profile pipeline run training
 ```
 
-Both pipelines require the MLflow service to be running. The `depends_on` in docker-compose handles this automatically.
-
 ---
 
 ## Running Tests
 
 ```bash
 pytest tests/
-```
-
-Or inside Docker:
-```bash
-docker compose run --profile pipeline training pytest tests/
 ```
 
 ---
@@ -144,19 +152,20 @@ docker compose run --profile pipeline training pytest tests/
 │   ├── feature/          # Feature engineering and Hopsworks integration
 │   ├── training/         # LightGBM training and MLflow logging
 │   └── inference/        # FastAPI serving, drift detection, dashboard
-├── data_preprocessing/   # Raw data cleanup scripts
+├── data_preprocessing/   # Raw data cleanup scripts (one-time use)
 ├── tests/                # Unit tests for all three pipelines
+├── .github/workflows/    # GitHub Actions weekly pipeline
 ├── Dockerfile            # Single image for all services
-├── docker-compose.yml    # Full stack: MLflow + inference + pipeline jobs
+├── docker-compose.yml    # Local stack: inference + pipeline jobs
 ├── requirements.txt      # Pinned dependencies
-└── .env.example          # Environment variable template
+└── .env.example          # Environment variable template with public credentials
 ```
 
 ---
 
 ## Model Tracking
 
-All training runs are logged to MLflow including:
+All training runs are logged to MLflow on DagsHub including:
 - Metrics: RMSE, MAE, R² on validation and test sets
 - Parameters: all LightGBM hyperparameters, dataset split dates, window config
 - Artifacts: serialized model, environment specs
@@ -167,6 +176,6 @@ The inference service loads the model tagged as `champion` from the MLflow regis
 
 ## Monitoring
 
-The inference service computes feature drift on every startup using z-scores against the training distribution. Features with a z-score above 2.0 are flagged. The drift report is available at `/drift` and is also shown in the dashboard.
+The inference service computes feature drift on every startup using z-scores against the training distribution. Features with a z-score above 1.5 are flagged. The drift report is available at `/drift` and is also shown in the dashboard.
 
-Drift in count-based features at the end of a 7-day window is expected due to partially completed windows (data is scraped Monday, Wednesday, and Friday). The pipeline automatically excludes incomplete windows from inference.
+Drift in count-based features at the end of a 7-day window is expected due to partially completed windows. The pipeline automatically excludes incomplete windows from inference.
