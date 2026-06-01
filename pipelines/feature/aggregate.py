@@ -2,11 +2,11 @@
 Reads normalized postings and aggregates them into a time-series DataFrame
 with one row per (job_title, location, window_start).
 """
-import io
 import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 import pandas as pd
 
@@ -41,7 +41,10 @@ def load_postings(path: str | Path | None = None) -> pd.DataFrame:
     if sas_url:
         from azure.storage.blob import BlobClient
         blob_name = os.environ.get("AZURE_BLOB_NAME", "structured_jobs_normalized_cleaned.jsonl")
-        blob = BlobClient.from_blob_url(f"{sas_url}/{blob_name}")
+        # Insert blob name into path before the query string
+        parsed = urlparse(sas_url)
+        blob_url = urlunparse(parsed._replace(path=f"{parsed.path}/{blob_name}"))
+        blob = BlobClient.from_blob_url(blob_url)
         content = blob.download_blob().readall().decode("utf-8")
         return _read_jsonl_lines(content.splitlines())
 
