@@ -105,6 +105,13 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 
 
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def index():
+    """Landing page with interactive UI for all endpoints."""
+    from pipelines.inference.landing import render
+    return render()
+
+
 @app.get("/drift", summary="Feature drift report")
 def get_drift():
     """
