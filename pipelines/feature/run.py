@@ -2,8 +2,8 @@
 Entry point for the feature pipeline.
 
 Usage:
-    python -m pipelines.feature.run
-    python -m pipelines.feature.run --no-hopsworks
+    python -m pipelines.feature.run (in Linux terminal)
+    python -m pipelines.feature.run --no-hopsworks (in windows terminal)
 """
 import argparse
 

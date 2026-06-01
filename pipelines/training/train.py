@@ -6,7 +6,6 @@ import os
 import lightgbm as lgb
 import mlflow
 import mlflow.lightgbm
-from mlflow.tracking import MlflowClient
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -46,7 +45,7 @@ def train_model(
 ) -> tuple[lgb.Booster, dict]:
     """
     Train LightGBM using val for early stopping, evaluate on test once at the end.
-    Logs everything to MLflow and registers the model.
+    Logs params and metrics to MLflow and registers the model as a new version.
     Returns the booster and a dict of all metrics.
     """
     if params is None:
@@ -99,22 +98,5 @@ def train_model(
         print(f"  {'Test':20s}  {metrics['test_rmse']:7.3f}  {metrics['test_mae']:7.3f}  {metrics['test_r2']:7.3f}")
         print(f"  Best iteration: {metrics['best_iteration']}")
         run_id = run.info.run_id
-
-    # Promote to champion if this model beats the current champion's val RMSE
-    client = MlflowClient(mlflow_uri)
-    versions = client.search_model_versions("name='job_posting_forecast'")
-    new_version = next(v.version for v in versions if v.run_id == run_id)
-
-    try:
-        champion_mv = client.get_model_version_by_alias("job_posting_forecast", "champion")
-        champion_rmse = client.get_run(champion_mv.run_id).data.metrics.get("val_rmse", float("inf"))
-    except Exception:
-        champion_rmse = float("inf")
-
-    if metrics["val_rmse"] < champion_rmse:
-        client.set_registered_model_alias("job_posting_forecast", "champion", new_version)
-        print(f"  Promoted version {new_version} to champion (val_rmse {metrics['val_rmse']:.3f})")
-    else:
-        print(f"  Version {new_version} not promoted — champion val_rmse {champion_rmse:.3f} is still better")
 
     return booster, metrics

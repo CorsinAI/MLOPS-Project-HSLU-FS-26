@@ -2,9 +2,11 @@
 Lightweight feature drift detection.
 
 Strategy: z-score of the mean deviation.
-  - Reference stats (mean, std) are computed from the full historical feature
-    table (all windows), representing the distribution the model was trained on.
-  - Current stats come from the most recent inference batch (latest window per pair).
+  - Reference stats (mean, std) are computed from the training feature table
+    (held-out windows excluded), representing the distribution the model was
+    trained on.
+  - Current stats come from the most recent inference batch (latest complete
+    window per pair).
   - A feature is flagged as drifted when |current_mean - ref_mean| / ref_std
     exceeds DRIFT_THRESHOLD.
 
@@ -25,7 +27,8 @@ DRIFT_THRESHOLD = 1.0  # z-score units; tune as more data accumulates
 
 def compute_reference_stats(features: pd.DataFrame) -> dict[str, dict]:
     """
-    Compute mean and std for each numeric feature across all historical windows.
+    Compute mean and std for each numeric feature from the training feature table
+    (i.e. after held-out windows have been removed with trim_for_training).
 
     Returns a dict keyed by feature name:
       {"mean": float, "std": float}

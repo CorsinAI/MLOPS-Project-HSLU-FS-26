@@ -38,6 +38,15 @@ def _weeks_since_last_run() -> float | None:
 
 
 def main() -> None:
+    """
+    Check for drift and staleness, then retrain if either condition is met.
+
+    Reads all features from Hopsworks, restricts to complete windows, and
+    computes drift between the inference batch and the training distribution.
+    Also checks how many days have elapsed since the last MLflow training run.
+    Triggers a full retrain if drift is detected OR the model is stale
+    (>= MAX_DAYS_WITHOUT_RETRAINING days since last run).
+    """
     features = read_feature_group()
     today = pd.Timestamp.now().normalize()
 

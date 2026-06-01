@@ -1,8 +1,5 @@
 """
 Loads the latest registered LightGBM model from the MLflow model registry.
-
-Falls back gracefully: tries a 'champion' alias first, then picks the
-highest version number from all registered versions.
 """
 import os
 
@@ -13,11 +10,7 @@ import mlflow.lightgbm
 
 def load_model(model_name: str = "job_posting_forecast") -> tuple[lgb.Booster, str]:
     """
-    Return (booster, version_string) for the production model.
-
-    Resolution order:
-      1. Version tagged with alias 'champion'
-      2. Highest registered version number (fallback)
+    Return (booster, version_string) for the latest registered model version.
 
     Raises RuntimeError if no versions are registered.
     """
@@ -26,17 +19,13 @@ def load_model(model_name: str = "job_posting_forecast") -> tuple[lgb.Booster, s
 
     client = mlflow.MlflowClient()
 
-    try:
-        mv = client.get_model_version_by_alias(model_name, "champion")
-    except Exception:
-        versions = client.search_model_versions(f"name='{model_name}'")
-        if not versions:
-            raise RuntimeError(
-                f"No registered versions found for model '{model_name}'. "
-                "Run the training pipeline first."
-            )
-        mv = max(versions, key=lambda v: int(v.version))
-
+    versions = client.search_model_versions(f"name='{model_name}'")
+    if not versions:
+        raise RuntimeError(
+            f"No registered versions found for model '{model_name}'. "
+            "Run the training pipeline first."
+        )
+    mv = max(versions, key=lambda v: int(v.version))
     version = mv.version
 
     # MLflow 3.x stores artifacts under a per-model-ID path exposed via

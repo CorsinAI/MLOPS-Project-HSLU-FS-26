@@ -1,8 +1,3 @@
-"""
-Computes lag and rolling features for each (job_title, location) time-series.
-Input: counts DataFrame from aggregate.aggregate_counts()
-Output: feature DataFrame ready for the feature store.
-"""
 import pandas as pd
 
 

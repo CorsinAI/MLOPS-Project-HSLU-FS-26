@@ -98,7 +98,7 @@ def time_split(
     val_frac: float = 0.2,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Split into train / val / test by window_start date (70/20/10 default).
+    Split into train / val / test by window_start date (60/20/20 default).
     Cutoffs are derived from the sorted unique windows so proportions are
     respected regardless of how many rows each window has.
     Never shuffles.

@@ -5,20 +5,9 @@ On startup the app:
   1. Loads features from the Hopsworks feature store.
   2. Loads the latest registered LightGBM model from MLflow.
   3. Generates 7-day-ahead forecasts for every (job_title, location) pair.
-  4. Computes a drift report against the full historical feature distribution.
+  4. Computes a drift report comparing the inference batch against the training
+     distribution (held-out windows excluded from reference stats).
 
-Environment variables:
-  HOPSWORKS_HOST        – Hopsworks instance host
-  HOPSWORKS_API_KEY     – Hopsworks API key
-  HOPSWORKS_PROJECT     – Hopsworks project name
-  MLFLOW_TRACKING_URI   – MLflow backend (DagsHub)
-
-Endpoints:
-  GET /health                     – liveness / readiness probe
-  GET /forecasts                  – all forecasts; optional ?role= and ?location= filters
-  GET /forecasts/{job_title}      – forecasts for a specific role (URL-encoded)
-  GET /drift                      – feature drift report
-  POST /refresh                   – reload data + model and regenerate forecasts
 """
 import os
 from contextlib import asynccontextmanager
@@ -38,9 +27,20 @@ from pipelines.training.prepare import FEATURES, trim_for_training
 
 def _run_pipeline() -> dict:
     """
-    Full inference pipeline: features → model → forecasts + drift.
+    Run the full inference pipeline and return a state dict cached in app.state.
 
-    Returns a state dict stored in app.state.
+    Steps:
+      1. Read all features from Hopsworks.
+      2. Load the latest model from MLflow.
+      3. Build inference features.
+      4. Generate predictions; clip negatives to zero.
+      5. Compute drift: compare inference feature means against the training
+         distribution.
+
+    Returns a dict with keys:
+      model_version, data_source, generated_at,
+      forecast_window_start, forecast_window_end,
+      num_pairs, forecasts, drift_report.
     """
     # --- Feature data ---
     from pipelines.feature.hopsworks_reader import read_feature_group
@@ -183,7 +183,7 @@ def get_forecasts_by_role(job_title: str):
 def get_drift():
     """
     Returns the drift report comparing the most recent inference batch against
-    the full historical feature distribution.
+    the training distribution (held-out windows excluded from reference stats).
     """
     state = app.state.pipeline
     return {
@@ -203,8 +203,9 @@ def dashboard():
 @app.post("/refresh", summary="Reload data and regenerate forecasts")
 def refresh():
     """
-    Reruns the full pipeline (feature engineering → model load → forecasts).
-    Use this after a new data batch has been written to the data directory.
+    Reruns the full pipeline (Hopsworks read → model load → forecasts → drift).
+    Use this after new features have been written to Hopsworks or a new model
+    version has been registered in MLflow.
     """
     app.state.pipeline = _run_pipeline()
     state = app.state.pipeline

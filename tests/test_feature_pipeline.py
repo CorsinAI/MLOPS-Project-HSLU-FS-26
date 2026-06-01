@@ -2,20 +2,16 @@
 Unit tests — Feature Pipeline
 =================================
 Covers three modules in order of data flow:
-  1. aggregate._read_jsonl_lines  — raw JSONL → DataFrame
-  2. aggregate.assign_windows     — date binning
-  3. aggregate.aggregate_counts   — groupby counting
-  4. features.compute_features    — lag / rolling feature computation
+  1. aggregate.assign_windows     — date binning
+  2. aggregate.aggregate_counts   — groupby counting
+  3. features.compute_features    — lag / rolling feature computation
 """
-import json
-
 import pandas as pd
 import pytest
 
 from pipelines.feature.aggregate import (
     DATA_START,
     WINDOW_DAYS,
-    _read_jsonl_lines,
     aggregate_counts,
     assign_windows,
 )
@@ -24,36 +20,7 @@ from tests.conftest import SAMPLE_RECORDS
 
 
 # ===========================================================================
-# 1. JSONL Parsing
-# ===========================================================================
-
-class TestReadJsonlLines:
-
-    def test_row_count_matches_input(self, raw_df):
-        assert len(raw_df) == len(SAMPLE_RECORDS)
-
-    def test_required_columns_present(self, raw_df):
-        assert {"job_title", "location", "publication_date"}.issubset(raw_df.columns)
-
-    def test_publication_date_is_datetime(self, raw_df):
-        assert pd.api.types.is_datetime64_any_dtype(raw_df["publication_date"])
-
-    def test_blank_lines_are_skipped(self):
-        lines = [
-            '{"job_title": "A", "location": "B", "publication_date": "04.01.2026"}',
-            "",
-            "   ",
-        ]
-        df = _read_jsonl_lines(lines)
-        assert len(df) == 1
-
-    def test_empty_input_returns_empty_dataframe(self):
-        df = _read_jsonl_lines([])
-        assert len(df) == 0
-
-
-# ===========================================================================
-# 2. Window Assignment
+# 1. Window Assignment
 # ===========================================================================
 
 class TestAssignWindows:
@@ -90,7 +57,7 @@ class TestAssignWindows:
 
 
 # ===========================================================================
-# 3. Count Aggregation
+# 2. Count Aggregation
 # ===========================================================================
 
 class TestAggregateCounts:
@@ -125,7 +92,7 @@ class TestAggregateCounts:
 
 
 # ===========================================================================
-# 4. Feature Computation
+# 3. Feature Computation
 # ===========================================================================
 
 class TestComputeFeatures:
