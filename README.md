@@ -1,3 +1,12 @@
+---
+title: MLOPS Job Forecasting
+emoji: 📈
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # Job Posting Demand Forecasting — MLOps Pipeline
 
 A production-style MLOps project that forecasts job posting demand across Swiss job titles and cantons. Built on the FTI (Feature, Training, Inference) pipeline architecture with a Hopsworks feature store, MLflow experiment tracking, and a FastAPI serving layer — all containerized with Docker.
