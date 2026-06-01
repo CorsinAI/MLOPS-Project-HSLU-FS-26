@@ -5,7 +5,6 @@ with one row per (job_title, location, window_start).
 import json
 import os
 from datetime import datetime, timedelta
-from urllib.parse import urlparse, urlunparse
 
 import pandas as pd
 
@@ -36,12 +35,10 @@ def load_postings() -> pd.DataFrame:
     Returns a DataFrame with columns: job_title, location, publication_date.
     """
     sas_url = os.environ["AZURE_SAS_URL"]
-    from azure.storage.blob import BlobClient
+    from azure.storage.blob import ContainerClient
     blob_name = os.environ.get("AZURE_BLOB_NAME", "structured_jobs_normalized_cleaned.jsonl")
-    parsed = urlparse(sas_url)
-    blob_url = urlunparse(parsed._replace(path=f"{parsed.path}/{blob_name}"))
-    blob = BlobClient.from_blob_url(blob_url)
-    content = blob.download_blob().readall().decode("utf-8")
+    container = ContainerClient.from_container_url(sas_url)
+    content = container.get_blob_client(blob_name).download_blob().readall().decode("utf-8")
     return _read_jsonl_lines(content.splitlines())
 
 
