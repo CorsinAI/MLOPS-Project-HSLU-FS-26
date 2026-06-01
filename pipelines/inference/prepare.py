@@ -3,7 +3,7 @@ Prepares features for inference.
 
 From the full historical feature DataFrame (all windows), selects the most
 recent observed window per (job_title, location).  Those rows are fed to the
-model to produce a forecast for the NEXT 3-day window.
+model to produce a forecast for the NEXT 7-day window.
 """
 import pandas as pd
 

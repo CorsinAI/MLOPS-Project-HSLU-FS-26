@@ -106,7 +106,7 @@ def render(state: dict) -> str:
 
   <!-- Top 25 bar chart -->
   <div class="card">
-    <h2>Top 25 — Predicted postings next 3-day window</h2>
+    <h2>Top 25 — Predicted postings next 7-day window</h2>
     <div class="chart-wrap">
       <canvas id="topChart"></canvas>
     </div>

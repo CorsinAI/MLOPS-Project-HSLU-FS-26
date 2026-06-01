@@ -4,7 +4,7 @@ FastAPI inference service for job-posting demand forecasts.
 On startup the app:
   1. Loads features from the Hopsworks feature store.
   2. Loads the latest registered LightGBM model from MLflow.
-  3. Generates 3-day-ahead forecasts for every (job_title, location) pair.
+  3. Generates 7-day-ahead forecasts for every (job_title, location) pair.
   4. Computes a drift report against the full historical feature distribution.
 
 Environment variables:
@@ -96,7 +96,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="JobAnalysis Inference API",
-    description="3-day-ahead job-posting demand forecasts for the Swiss job market.",
+    description="7-day-ahead job-posting demand forecasts for the Swiss job market.",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -125,7 +125,7 @@ def health():
     }
 
 
-@app.get("/forecasts", summary="All 3-day-ahead forecasts")
+@app.get("/forecasts", summary="All 7-day-ahead forecasts")
 def get_forecasts(
     role: Optional[str] = Query(None, description="Filter by job_title (case-insensitive substring)"),
     location: Optional[str] = Query(None, description="Filter by location (case-insensitive substring)"),

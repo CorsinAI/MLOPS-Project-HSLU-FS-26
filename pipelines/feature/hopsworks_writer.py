@@ -42,7 +42,7 @@ def write_feature_group(
         primary_key=primary_key,
         event_time=event_time,
         online_enabled=False,
-        description="Aggregated 3-day job posting counts with lag/rolling features",
+        description="Aggregated 7-day job posting counts with lag/rolling features",
     )
     fg.insert(df, write_options={"wait_for_job": True})
     print(f"Inserted {len(df)} rows into feature group '{feature_group_name}' v{version}")

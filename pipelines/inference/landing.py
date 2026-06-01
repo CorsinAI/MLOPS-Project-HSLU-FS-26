@@ -54,7 +54,7 @@ def render() -> str:
 
 <header>
   <h1>Job Posting Forecast</h1>
-  <p>3-day-ahead demand forecasts for the Swiss job market — LightGBM · Hopsworks · MLflow</p>
+  <p>7-day-ahead demand forecasts for the Swiss job market — LightGBM · Hopsworks · MLflow</p>
 </header>
 
 <nav>
