@@ -122,6 +122,75 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 
 
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def index():
+    """Landing page with links to all endpoints."""
+    return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Posting Forecast API</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 60px auto; padding: 0 24px; color: #1a1a1a; }
+    h1 { font-size: 1.8rem; margin-bottom: 4px; }
+    .subtitle { color: #555; margin-bottom: 40px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px 24px; text-decoration: none; color: inherit; display: block; transition: box-shadow 0.15s; }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .card .method { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+    .get { background: #e8f5e9; color: #2e7d32; }
+    .post { background: #fff3e0; color: #e65100; }
+    .card h2 { font-size: 1rem; margin: 0 0 6px; }
+    .card p { font-size: 0.875rem; color: #555; margin: 0; }
+    .docs-link { margin-top: 32px; font-size: 0.875rem; color: #555; }
+    .docs-link a { color: #1976d2; }
+  </style>
+</head>
+<body>
+  <h1>Job Posting Forecast API</h1>
+  <p class="subtitle">3-day-ahead demand forecasts for the Swiss job market — powered by LightGBM, Hopsworks, and MLflow.</p>
+
+  <div class="grid">
+    <a class="card" href="/dashboard">
+      <span class="method get">GET</span>
+      <h2>/dashboard</h2>
+      <p>Interactive dashboard with charts, forecast table, and drift report.</p>
+    </a>
+    <a class="card" href="/forecasts">
+      <span class="method get">GET</span>
+      <h2>/forecasts</h2>
+      <p>All forecasts sorted by predicted count. Filter by <code>?role=</code> and <code>?location=</code>.</p>
+    </a>
+    <a class="card" href="/drift">
+      <span class="method get">GET</span>
+      <h2>/drift</h2>
+      <p>Feature drift report comparing the current batch against the training distribution.</p>
+    </a>
+    <a class="card" href="/health">
+      <span class="method get">GET</span>
+      <h2>/health</h2>
+      <p>Liveness probe. Returns model version and generation timestamp.</p>
+    </a>
+    <a class="card" href="/docs">
+      <span class="method get">GET</span>
+      <h2>/docs</h2>
+      <p>Auto-generated Swagger UI with full API documentation.</p>
+    </a>
+    <a class="card" href="#" onclick="fetch('/refresh',{method:'POST'}).then(r=>r.json()).then(d=>alert('Refreshed at '+d.generated_at));return false;">
+      <span class="method post">POST</span>
+      <h2>/refresh</h2>
+      <p>Reload data and regenerate all forecasts. Click to trigger.</p>
+    </a>
+  </div>
+
+  <p class="docs-link">Full API docs at <a href="/docs">/docs</a> &middot; Redoc at <a href="/redoc">/redoc</a></p>
+</body>
+</html>
+"""
+
+
 @app.get("/health", summary="Liveness / readiness probe")
 def health():
     state = app.state.pipeline
