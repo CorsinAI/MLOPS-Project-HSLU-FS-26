@@ -2,15 +2,16 @@
 FastAPI inference service for job-posting demand forecasts.
 
 On startup the app:
-  1. Loads features from Hopsworks (or falls back to local JSONL).
+  1. Loads features from the Hopsworks feature store.
   2. Loads the latest registered LightGBM model from MLflow.
   3. Generates 3-day-ahead forecasts for every (job_title, location) pair.
   4. Computes a drift report against the full historical feature distribution.
 
 Environment variables:
-  USE_HOPSWORKS         – set to "true" to read features from Hopsworks (default: false)
-  INFERENCE_DATA_PATH   – path to the JSONL postings file (fallback when USE_HOPSWORKS is false)
-  MLFLOW_TRACKING_URI   – MLflow backend (default: mlruns)
+  HOPSWORKS_HOST        – Hopsworks instance host
+  HOPSWORKS_API_KEY     – Hopsworks API key
+  HOPSWORKS_PROJECT     – Hopsworks project name
+  MLFLOW_TRACKING_URI   – MLflow backend (DagsHub)
 
 Endpoints:
   GET /health                     – liveness / readiness probe
@@ -22,7 +23,6 @@ Endpoints:
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -35,14 +35,6 @@ from pipelines.inference.load_model import load_model
 from pipelines.inference.prepare import build_inference_features
 from pipelines.training.prepare import FEATURES
 
-_USE_HOPSWORKS = os.environ.get("USE_HOPSWORKS", "false").lower() == "true"
-_DEFAULT_DATA_PATH = Path(
-    os.environ.get(
-        "INFERENCE_DATA_PATH",
-        "data/structured_jobs_20.05_normalized_cleaned.jsonl",
-    )
-)
-
 
 def _run_pipeline() -> dict:
     """
@@ -51,16 +43,8 @@ def _run_pipeline() -> dict:
     Returns a state dict stored in app.state.
     """
     # --- Feature data ---
-    if _USE_HOPSWORKS:
-        from pipelines.feature.hopsworks_reader import read_feature_group
-        features = read_feature_group()
-    else:
-        from pipelines.feature.aggregate import load_postings, assign_windows, aggregate_counts
-        from pipelines.feature.features import compute_features
-        df = load_postings(_DEFAULT_DATA_PATH)
-        df = assign_windows(df)
-        counts = aggregate_counts(df)
-        features = compute_features(counts)
+    from pipelines.feature.hopsworks_reader import read_feature_group
+    features = read_feature_group()
 
     # --- Load model ---
     booster, model_version = load_model()
